@@ -4,7 +4,6 @@
 MNISTReader::MNISTReader(const char* images_files, const char* labels_files){
     std::ifstream imStream(images_files, std::ios::binary);
     std::ifstream labStream(labels_files, std::ios::binary);
-    std::cout<<"cstrc called\n";
     if (!imStream.is_open() || !labStream.is_open()) {
         throw std::runtime_error("Impossible d'ouvrir les fichiers MNIST");
     }
@@ -69,6 +68,12 @@ MNISTReader::MNISTReader(const char* images_files, const char* labels_files){
     
 }
 
+/* MNISTReader::~MNISTReader(){
+    std::cout<<"this shit called";
+    delete []images;
+    delete [] labels;
+} */
+
 void MNISTReader::debug(){
     for(int i = 0; i<100;i++){
         std::cout<<(int)labels[i]<<std::endl;
@@ -97,8 +102,20 @@ const uint8_t *MNISTReader::getLabel(size_t index) const{
         std::cerr<<"Invalid index"<<std::endl;
         return nullptr;
     }
+    return labels+index;
 
+}
 
+const uint32_t MNISTReader::get_num_images() const{
+    return num_images;
+}
+
+const uint32_t MNISTReader::get_num_rows() const{
+    return rows; //should be 28
+}
+
+const uint32_t MNISTReader::get_num_cols() const{
+    return cols; //should be 28
 }
 
 void MNISTReader::showImageAndLabel(size_t i)

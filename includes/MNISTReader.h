@@ -20,12 +20,19 @@ class MNISTReader{
 
         public :
             MNISTReader(const char* images_file, const char* labels_file);
+            //~MNISTReader();
             void debug();
 
             const uint8_t* getImage(size_t index) const;
             const uint8_t* getLabel(size_t index) const;
-            
-            void showImageAndLabel(size_t i);
+
+            const uint32_t get_num_images() const;
+            const uint32_t get_num_rows() const;
+            const uint32_t get_num_cols() const;
+
+
+            //TO DELETE
+            void showImageAndLabel(size_t i); //command line output
             void plot_mnist_direct(size_t imageIndex); //under test
 
 

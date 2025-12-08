@@ -13,9 +13,11 @@ Matrix::Matrix(size_t rows, size_t cols) : n_rows(rows), n_cols(cols){
 }
 
 Matrix::Matrix(size_t rows, size_t cols, const uint8_t *pixels) : n_rows(1),n_cols(rows*cols){
+    datas = new double[rows*cols]();
     for (size_t i = 0; i < rows * cols; ++i) {
         datas[i] = static_cast<double>(pixels[i]);
     }
+    
 }
 
 Matrix::Matrix(size_t rows, size_t cols, GENERATION_MODE G_MODE) : n_rows(rows), n_cols(cols){

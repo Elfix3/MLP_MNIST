@@ -6,7 +6,7 @@ TARGET = program
 
 
 CXXFLAGS = -Wall -std=c++11 -Iincludes -Iexternals 
-LDFLAGS  = -L$(PYTHON_LIB) -lpython314
+
 
 SOURCES  = $(SRC_MAIN) $(wildcard $(SRC_DIR)/*.cpp)
 OBJECTS  = $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(notdir $(SOURCES)))
