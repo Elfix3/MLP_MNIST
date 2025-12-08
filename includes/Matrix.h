@@ -91,6 +91,7 @@ class Matrix{
 
         void fill(double value);
         void print() const;
+        void printSize() const;
         friend std::ostream& operator<<(std::ostream& os, const Matrix& m);
 
     };

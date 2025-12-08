@@ -278,7 +278,10 @@ void Matrix::print() const
         std::cout<<"\n";
     }
     std::cout<<"\n";
-} 
+}
+void Matrix::printSize() const{
+    std::cout<<"Size : "<<n_rows<<" x "<<n_cols<<std::endl;
+}
 
 std::ostream& operator<<(std::ostream& os, const Matrix& m) {
     for (size_t i = 0; i < m.n_rows; i++) {

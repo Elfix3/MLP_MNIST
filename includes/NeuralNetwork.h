@@ -14,7 +14,8 @@ class NeuralNetwork{
         ~NeuralNetwork();
 
         Matrix forward(const Matrix input) const;
-            
+        double loss(const Matrix output,size_t correct_digit) const;
+
         void debug();
 };
 

@@ -11,8 +11,10 @@ int main(){
     //
     //r.getImage() to fetch image *uint8_t
     //r.getLabel() to fetch label uint8_t
+    
+    int y = static_cast<int>(*r.getLabel(2));
+
     std::vector<std::pair<size_t,ActivationType>> network_config = {
-        {512,RELU},
         {256,RELU},
         {128, SOFTMAX},
     };
@@ -20,8 +22,10 @@ int main(){
     NeuralNetwork nn(784,network_config,10);
     //nn.debug();
     Matrix a = nn.forward(normalized);
+    a.printSize();
+    std::cout << y<<std::endl;
+    std::cout<<nn.loss(a,y)<<std::endl;
     
-    std::cout<<a.cols()<<std::endl;
     std::cout<<a;
 
     //std::cout<<*r.getLabel(2);

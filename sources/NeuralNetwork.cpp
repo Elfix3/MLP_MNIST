@@ -24,9 +24,20 @@ NeuralNetwork::~NeuralNetwork(){
     delete []layers;
 }
 
-Matrix NeuralNetwork::forward(const Matrix input) const
-{
-    return   layers[2]->forward(layers[1]->forward(layers[0]->forward(input)));
+Matrix NeuralNetwork::forward(const Matrix input) const{
+    Matrix out = input;
+    for(size_t i = 0 ; i<n_layers;i++){
+        out = layers[i]->forward(out);
+        
+    }
+    return out;
+}
+
+double NeuralNetwork::loss(const Matrix output, size_t correct_digit) const{
+    //1 label
+    assert((correct_digit>=0 && correct_digit<=9)  && "digit must be between 0 and 9");
+    double eps = 1e-15;
+    return -std::log(std::max(output(0,correct_digit),eps));
 }
 
 void NeuralNetwork::debug(){

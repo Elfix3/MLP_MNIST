@@ -17,7 +17,7 @@ class Layer{
         Matrix Z; //sortie
         Matrix A; //activation après relu/softmax
         ActivationType type;
-        size_t n_neural;//nombre de neurones
+        size_t n_neural;//nombre de neurones-
     
     public :
         Layer(size_t n_input_parameters, size_t n_neural, ActivationType type=RELU);
