@@ -66,8 +66,14 @@ class Matrix{
         Matrix& operator+=(const Matrix& other);
         Matrix& operator-=(const Matrix& other);
 
+        Matrix operator^(const Matrix& other) const; //elements per elements product
+        Matrix& operator^=(const Matrix& other);
+
         Matrix operator*(double scalar) const;
         Matrix& operator*=(double scalar);
+
+        Matrix operator/(double scalar) const;
+        Matrix& operator/=(double scalar);
 
         // =========================
         // PRODUIT MATRICIEL
@@ -80,6 +86,8 @@ class Matrix{
         // =========================
 
         Matrix transpose() const;
+        Matrix sum_columns() const;
+        Matrix sum_rows() const;
         Matrix Normalize(double div) const;
         static Matrix identity(size_t n);
 

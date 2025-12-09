@@ -160,6 +160,23 @@ Matrix &Matrix::operator-=(const Matrix &other){
     return *this;
 }
 
+Matrix Matrix::operator^(const Matrix &other)const{
+    assert(n_rows == other.n_rows && n_cols == other.n_cols);
+    Matrix elementProduct(n_rows,n_cols);
+    for(size_t i = 0; i<n_cols*n_rows;i++){
+        elementProduct.datas[i] = datas[i] * other.datas[i]; 
+    }
+    return elementProduct;
+}
+
+Matrix &Matrix::operator^=(const Matrix &other){
+    assert(n_rows == other.n_rows && n_cols == other.n_cols);
+    for(size_t i = 0; i<n_cols*n_rows;i++){
+        datas[i] = datas[i] * other.datas[i]; 
+    }
+    return *this;
+}
+
 Matrix Matrix::operator*(double scalar) const{
     Matrix scaledMatrix(n_rows, n_cols);
     for(size_t i = 0; i<n_cols*n_rows;i++){
@@ -174,6 +191,23 @@ Matrix &Matrix::operator*=(double scalar){
         datas[i]*=scalar;
     }
     
+    return *this;
+}
+
+Matrix Matrix::operator/(double scalar) const{
+    assert((scalar!=0) && "Erreur division par 0");
+    Matrix scaledMatrix(n_rows, n_cols);
+    for(size_t i = 0; i<n_cols*n_rows;i++){
+        scaledMatrix.datas[i] = datas[i]/scalar;
+    }
+    return scaledMatrix;
+}
+
+Matrix &Matrix::operator/=(double scalar){
+    assert((scalar!=0) && "Erreur division par 0");
+    for(size_t i = 0; i<n_cols*n_rows;i++){
+        datas[i]/=scalar;
+    }
     return *this;
 }
 
@@ -204,6 +238,26 @@ Matrix Matrix::transpose() const {
     }
 
     return transposed;
+}
+
+Matrix Matrix::sum_columns() const{
+    Matrix singleCol(n_rows,1);
+    for(size_t i = 0; i<n_rows;i++){
+        for(size_t j = 0; j<n_cols; j++){
+            singleCol.datas[i]+=datas[i*n_cols+j];
+        }
+    }
+    return singleCol;
+}
+
+Matrix Matrix::sum_rows() const{
+    Matrix singleRow(1,n_cols);
+    for(size_t i = 0; i<n_rows;i++){
+        for(size_t j = 0; j<n_cols; j++){
+            singleRow.datas[j]+=datas[i*n_cols+j];
+        }
+    }
+    return singleRow;
 }
 
 Matrix Matrix::Normalize(double div) const{

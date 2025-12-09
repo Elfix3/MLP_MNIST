@@ -1,6 +1,6 @@
 #include "NeuralNetwork.h"
 
-NeuralNetwork::NeuralNetwork(size_t n_first_input,const std::vector<std::pair<size_t, ActivationType>> &v, size_t n_final_final_output){
+NeuralNetwork::NeuralNetwork(size_t n_first_input,const std::vector<std::pair<size_t, ActivationType>> &v){
     if(v.size()<2){
         throw std::invalid_argument("Please add at least 2 layers");
     }
@@ -8,7 +8,7 @@ NeuralNetwork::NeuralNetwork(size_t n_first_input,const std::vector<std::pair<si
     layers = new Layer*[v.size()];
     for(size_t i = 0;i<v.size(); i++){
         size_t input = (i==0 ? n_first_input: v[i-1].first);
-        size_t output = (i+1 == v.size()) ?  n_final_final_output : v[i].first;
+        size_t output = v[i].first;
         ActivationType act  = v[i].second;
 
         std::cout<<input<<" "<<output<< "\n";
@@ -26,12 +26,18 @@ NeuralNetwork::~NeuralNetwork(){
 
 Matrix NeuralNetwork::forward(const Matrix input) const{
     Matrix out = input;
-    for(size_t i = 0 ; i<n_layers;i++){
+    for(size_t i = 0 ; i<n_layers;i++){ 
         out = layers[i]->forward(out);
         
     }
+    Y = out;
     return out;
 }
+
+void NeuralNetwork::backward(const double loss) const{
+
+}
+
 
 double NeuralNetwork::loss(const Matrix output, size_t correct_digit) const{
     //1 label
@@ -40,8 +46,11 @@ double NeuralNetwork::loss(const Matrix output, size_t correct_digit) const{
     return -std::log(std::max(output(0,correct_digit),eps));
 }
 
+const Layer *NeuralNetwork::getLayer(size_t index) const{
+    if(index >= n_layers) return nullptr;
+    return layers[index];
+}
+
 void NeuralNetwork::debug(){
-    std::cout<<n_layers<<std::endl;
-    std::cout<<layers[0]->get_n_neural()<<std::endl;
-    std::cout<<layers[1]->get_n_neural()<<std::endl;
+    
 }

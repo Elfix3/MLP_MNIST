@@ -12,21 +12,31 @@ int main(){
     //r.getImage() to fetch image *uint8_t
     //r.getLabel() to fetch label uint8_t
     
-    int y = static_cast<int>(*r.getLabel(2));
+    //r.plot_mnist_direct(3);
+
+
+    //int y = static_cast<int>(*r.getLabel(2));
 
     std::vector<std::pair<size_t,ActivationType>> network_config = {
         {256,RELU},
-        {128, SOFTMAX},
+        {128, RELU},
+        {10, SOFTMAX} 
     };
     
-    NeuralNetwork nn(784,network_config,10);
+    Matrix a(3,3, IMAGE_GRAY_SCALE);
+    std::cout<<a<<std::endl;
+    std::cout<<a.sum_rows();
+
+    NeuralNetwork nn(784,network_config);
     //nn.debug();
-    Matrix a = nn.forward(normalized);
-    a.printSize();
-    std::cout << y<<std::endl;
-    std::cout<<nn.loss(a,y)<<std::endl;
-    
-    std::cout<<a;
+    Matrix b = nn.forward(normalized);
+    std::cout<<nn.getLayer(0)->getdB()<<std::endl;
+    nn.getLayer(0)->getdB().printSize();
+
+    nn.getLayer(0)->getW().printSize();
+    nn.getLayer(0)->getb().printSize();
+
+  
 
     //std::cout<<*r.getLabel(2);
    
