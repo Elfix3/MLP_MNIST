@@ -27,18 +27,25 @@ const Matrix &Layer::forward(const Matrix &X){
     }
     return A;
 }
-
 Matrix Layer::backward(const Matrix &dA){
     int n = dA.cols(); //batch size
     Matrix dZ;
     Matrix maskZ = Z; //f'Z
+    
     switch(type){
         case SOFTMAX :
-            dZ = dA; //for softmax only
-            dW = (dZ*A_prev.transpose()) / n;
-            dB = dZ.sum_columns() / n;
+            dZ = dA; //for softmax only, n samples * 10 input neurons
+
+            /* dW.printSize();
+            W.printSize();
+            std::cout<<"\n\n";
+            A_prev.printSize();
+            dZ.printSize(); */
+            dW = (A_prev.transpose()*dZ) / n;
+            dB = dZ.sum_rows() / n;
         break;
         case RELU :
+            
             for(size_t i = 0 ; i<Z.rows(); i ++){
                 for(size_t j = 0; j<Z.cols();j++){
                     if(maskZ(i,j)<0){
@@ -47,16 +54,25 @@ Matrix Layer::backward(const Matrix &dA){
                         maskZ(i,j) = 0;
                     }
                 }
+            
             }
+            
+            
             dZ = dA^maskZ;
-            dW = (dZ * A_prev.transpose()) / n;
-            dB = dZ.sum_columns() / n;
+            dW = (A_prev.transpose()*dZ) / n;
+
+            dB = dZ.sum_rows() / n;
+
             
         break;
         default :
         break;
     }
-    Matrix dA_prev = W.transpose() * dZ;
+    
+    
+    Matrix dA_prev = dZ*W.transpose(); //1*m neurons in the layer
+    
+   
     return dA_prev;
 }
 
@@ -91,4 +107,19 @@ const Matrix &Layer::getdB() const{
 
 const size_t &Layer::get_n_neural() const{
     return n_neural;
+}
+
+void Layer::recap() const {
+    std::cout<<"Number of neurals : "<<n_neural<<"\n";
+    std::cout<<"Weights size :";
+    W.printSize();
+    std::cout<<"Bias size :";
+    b.printSize();
+    
+    std::cout<<"dW size :";
+    dW.printSize();
+    std::cout<<"Bias size :";
+    dB.printSize();
+
+
 }

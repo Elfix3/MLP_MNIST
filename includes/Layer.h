@@ -40,5 +40,7 @@ class Layer{
         const Matrix& getdB() const;
         
         const size_t& get_n_neural() const; 
+
+        void recap() const ;
 };
 #endif

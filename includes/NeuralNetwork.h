@@ -16,9 +16,9 @@ class NeuralNetwork{
         ~NeuralNetwork();
 
         Matrix forward(const Matrix input) const;
-        void backward(const double loss)const ;
-
         double loss(const Matrix output,size_t correct_digit) const;
+        void backward(const Matrix& first_dA);
+        void update();
 
         const Layer* getLayer(size_t index) const; 
 

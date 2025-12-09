@@ -34,16 +34,26 @@ Matrix NeuralNetwork::forward(const Matrix input) const{
     return out;
 }
 
-void NeuralNetwork::backward(const double loss) const{
-
+void NeuralNetwork::backward(const Matrix &first_dA){
+    Matrix prop_dA = first_dA;
+    
+    for (int i = n_layers - 1; i >= 0; i--){ 
+        prop_dA = layers[i]->backward(prop_dA);
+        
+    }
 }
 
+void NeuralNetwork::update(){
+    for(size_t i = 0; i<n_layers;i++){
+        layers[i]->update();
+    }
+}
 
 double NeuralNetwork::loss(const Matrix output, size_t correct_digit) const{
     //1 label
     assert((correct_digit>=0 && correct_digit<=9)  && "digit must be between 0 and 9");
     double eps = 1e-15;
-    return -std::log(std::max(output(0,correct_digit),eps));
+    return  -std::log(std::max(output(0,correct_digit),eps));
 }
 
 const Layer *NeuralNetwork::getLayer(size_t index) const{
