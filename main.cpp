@@ -10,17 +10,17 @@ int main(){
     MNISTReader test("data/t10k-images.idx3-ubyte","data/t10k-labels.idx1-ubyte");
 
     std::vector<std::pair<size_t,ActivationType>> network_config = {
-        {256,RELU},
-        {128, RELU},
-        {10, SOFTMAX} 
+        {26, RELU},
+        {26, RELU},
+        {10, SOFTMAX}
     };
     NeuralNetwork nn(784,network_config);
 
-    static size_t predictCursor = 0; 
+    static size_t predictCursor = 400; 
 
     bool isAlive = true;
     int n_epochs = 10;
-    int batch_size = 60;
+    int batch_size = 120;
 
     /* std::cout<<X;
     X.printSize(); */
@@ -33,7 +33,7 @@ int main(){
         switch(usr_choice){
             case 1:
             for (int epoch = 0; epoch < n_epochs; epoch++) {
-                for (int batch_start = 0; batch_start < 60*100; batch_start += batch_size) {
+                for (int batch_start = 0; batch_start < batch_size*500; batch_start += batch_size) {
                     Matrix X = r.X_bach(batch_start,batch_size);
                     Matrix Y = r.Y_bach(batch_start,batch_size);
                     Matrix A = nn.forward(X.Normalize(255));
@@ -46,12 +46,14 @@ int main(){
             break;
             case 2 :
             {
-                Matrix X_test(1,784,test.getImage(predictCursor++));
+                Matrix X_test(1,784,test.getImage(predictCursor));
                 test.plot_mnist_direct(X_test);
                 Matrix Y_test = nn.forward(X_test);
                 Y_test.printSize();
                 std::cout<<Y_test<<std::endl;
                 Y_test.showProbability();
+                std::cout<<(int)*test.getLabel(predictCursor)<<std::endl;
+                predictCursor++;
             }
             break;
             case 3:

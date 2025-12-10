@@ -29,7 +29,7 @@ class Layer{
         const Matrix& forward(const Matrix &X); //from X and defined W and b, computes Z and A;
         Matrix backward(const Matrix &dA);
 
-        void update(double learning_rate=0.001);
+        void update(double learning_rate=0.009);
 
         //getters
         const Matrix& getW() const;
