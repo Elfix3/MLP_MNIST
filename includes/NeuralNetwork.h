@@ -17,6 +17,7 @@ class NeuralNetwork{
 
         Matrix forward(const Matrix input) const;
         double loss(const Matrix output,size_t correct_digit) const;
+        double lossBatch(const Matrix &output, const Matrix &Y) const;
         void backward(const Matrix& first_dA);
         void update();
 

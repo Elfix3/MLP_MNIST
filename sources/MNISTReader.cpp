@@ -118,6 +118,26 @@ const uint32_t MNISTReader::get_num_cols() const{
     return cols; //should be 28
 }
 
+Matrix MNISTReader::X_bach(size_t batch_start, size_t batch_size){
+    Matrix X(batch_size,rows*cols);
+    for(size_t i = 0; i < batch_size; i++){
+        for(size_t j = 0; j<rows*cols;j++){
+            X(i,j) = static_cast<double>(*(getImage(batch_start + i) +j) );
+        }
+    }
+    return X;
+}
+
+Matrix MNISTReader::Y_bach(size_t batch_start, size_t batch_size){
+    Matrix Y(batch_size, 10); //10 classes
+    for (size_t i = 0; i < batch_size; i++) {
+        uint8_t label = *getLabel(batch_start + i);  
+        Y(i, label) = 1.0;
+    }
+    return Y;
+
+}
+
 void MNISTReader::showImageAndLabel(size_t i)
 {
     using namespace std;
@@ -151,6 +171,32 @@ void MNISTReader::plot_mnist_direct(size_t imageIndex) {
     system("gnuplot -persistent -e \"set view map; set palette gray; plot 'image.dat' with image\"");
     //std::remove("image.dat");
 }
+
+void MNISTReader::plot_mnist_direct(const Matrix &img)
+{
+    assert(img.rows() == 1 && img.cols() == 784);
+
+    std::ofstream dataFile("image.dat");
+
+    for (int y = 0; y < 28; y++) {
+        for (int x = 0; x < 28; x++) {
+
+            // même convention d'inversion verticale que dans ta version
+            int index = (28 - y) * 28 + x;
+
+            dataFile << x << " " << y << " "
+                     << static_cast<int>(img(0, index))
+                     << "\n";
+        }
+        dataFile << "\n"; 
+    }
+
+    dataFile.close();
+
+    system("gnuplot -persistent -e \"set view map; set palette gray; plot 'image.dat' with image\"");
+}
+
+
 
 /* void MNISTReader::readData(const char *fileName)
 {

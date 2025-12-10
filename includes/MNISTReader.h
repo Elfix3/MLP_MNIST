@@ -1,6 +1,8 @@
 #ifndef MNIST_READER_H
 #define MNIST_READER_H
 
+#include "Matrix.h"
+
 #include <fstream>
 #include <iostream>
 #include <assert.h>
@@ -30,10 +32,14 @@ class MNISTReader{
             const uint32_t get_num_rows() const;
             const uint32_t get_num_cols() const;
 
+            Matrix X_bach(size_t batch_start, size_t batch_size);
+            Matrix Y_bach(size_t batch_start, size_t batch_size);
+
 
             //TO DELETE
             void showImageAndLabel(size_t i); //command line output
             void plot_mnist_direct(size_t imageIndex); //under test
+            void plot_mnist_direct(const Matrix &img);
 
 
 

@@ -49,6 +49,10 @@ class Matrix{
         size_t rows() const;
         size_t cols() const;
 
+        Matrix getLine(size_t index) const;
+        Matrix getCol(size_t index) const;
+
+
         // =========================
         // ASSIGNATION
         // =========================
@@ -88,6 +92,8 @@ class Matrix{
         Matrix transpose() const;
         Matrix sum_columns() const;
         Matrix sum_rows() const;
+        Matrix broadcastRows(size_t broad_cast_rows) const;
+
         Matrix Normalize(double div) const;
         static Matrix identity(size_t n);
 
@@ -100,6 +106,7 @@ class Matrix{
         void fill(double value);
         void print() const;
         void printSize() const;
+        void showProbability();
         friend std::ostream& operator<<(std::ostream& os, const Matrix& m);
 
     };

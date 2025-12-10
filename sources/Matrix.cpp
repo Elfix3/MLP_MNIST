@@ -45,7 +45,7 @@ Matrix::Matrix(size_t rows, size_t cols, GENERATION_MODE G_MODE) : n_rows(rows),
 
         case NORMALIZED :
             for (size_t i = 0; i < rows * cols; ++i) {
-                datas[i] = d2(gen);  // double -1 to 1
+                datas[i] = d2(gen)*0.08;  // double -1 to 1
             }
             break;
 
@@ -92,6 +92,24 @@ size_t Matrix::rows() const{
 
 size_t Matrix::cols() const{
     return this->n_cols;
+}
+
+Matrix Matrix::getLine(size_t index) const {
+    assert(index<n_rows);
+    Matrix line(1,n_cols);
+    for(size_t i = 0; i<n_cols;i++){
+        line(0,i) = (*this)(index,i);
+    }
+    return line;
+}
+
+Matrix Matrix::getCol(size_t index) const {
+    assert(index<n_cols);
+    Matrix column(n_rows,1);
+    for(size_t i = 0; i<n_rows;i++){
+        column(i,0) = (*this)(i,index);
+    }
+    return column;
 }
 
 Matrix &Matrix::operator=(const Matrix &other){
@@ -260,6 +278,16 @@ Matrix Matrix::sum_rows() const{
     return singleRow;
 }
 
+Matrix Matrix::broadcastRows(size_t broad_cast_rows) const{
+    Matrix result(broad_cast_rows, this->n_cols);
+    for (size_t i = 0; i < broad_cast_rows; i++) {
+        for (size_t j = 0; j < n_cols; j++) {
+            result(i, j) = (*this)(0, j);  // copie la seule ligne
+        }
+    }
+    return result;
+}
+
 Matrix Matrix::Normalize(double div) const{
     Matrix normalized(n_rows,n_cols);
     for(size_t i =0; i<n_cols*n_rows;i++){
@@ -277,7 +305,7 @@ Matrix Matrix::identity(size_t n){
 }
 
 Matrix Matrix::RELU()const{
-    assert(n_rows == 1 &&"Nombre de lignes != de 1");
+    //assert(n_rows == 1 &&"Nombre de lignes != de 1");
     Matrix copy(*this);
     for(size_t i = 0 ; i<n_cols*n_rows;i++){
         copy.datas[i] = (copy.datas[i] > 0) ? copy.datas[i] : 0;
@@ -286,7 +314,7 @@ Matrix Matrix::RELU()const{
 }
 
 Matrix Matrix::SOFTMAX() const{
-    assert(n_rows == 1 &&"Nombre de lignes != de 1");
+    //assert(n_rows == 1 &&"Nombre de lignes != de 1");
     Matrix copy(*this);
 
     double max_val = datas[0];
@@ -335,6 +363,13 @@ void Matrix::print() const
 }
 void Matrix::printSize() const{
     std::cout<<"Size : "<<n_rows<<" x "<<n_cols<<std::endl;
+}
+
+void Matrix::showProbability(){
+    assert(n_rows==1);
+    for(size_t i = 0; i<n_cols;i++){
+        std::cout<<"Probabilite pour "<<i<<" : "<<(*this)(0,i)<<std::endl;
+    }
 }
 
 std::ostream& operator<<(std::ostream& os, const Matrix& m) {

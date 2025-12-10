@@ -10,9 +10,10 @@ Layer::Layer(size_t n_input_parameters, size_t n_neural, ActivationType type) :
 {}
 
 const Matrix &Layer::forward(const Matrix &X){
-    assert(X.rows() == 1);
     A_prev = X;
-    Z = X*W+b;
+    Z = X*W+b.broadcastRows(X.rows());
+
+    
     switch(type){
         case RELU :
             A = Z.RELU();
@@ -25,6 +26,7 @@ const Matrix &Layer::forward(const Matrix &X){
 
         break;
     }
+    
     return A;
 }
 Matrix Layer::backward(const Matrix &dA){
@@ -36,11 +38,6 @@ Matrix Layer::backward(const Matrix &dA){
         case SOFTMAX :
             dZ = dA; //for softmax only, n samples * 10 input neurons
 
-            /* dW.printSize();
-            W.printSize();
-            std::cout<<"\n\n";
-            A_prev.printSize();
-            dZ.printSize(); */
             dW = (A_prev.transpose()*dZ) / n;
             dB = dZ.sum_rows() / n;
         break;
@@ -51,7 +48,7 @@ Matrix Layer::backward(const Matrix &dA){
                     if(maskZ(i,j)<0){
                         maskZ(i,j) = 0;
                     } else {
-                        maskZ(i,j) = 0;
+                        maskZ(i,j) = 1;
                     }
                 }
             

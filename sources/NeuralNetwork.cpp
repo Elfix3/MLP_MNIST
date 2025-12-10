@@ -56,6 +56,24 @@ double NeuralNetwork::loss(const Matrix output, size_t correct_digit) const{
     return  -std::log(std::max(output(0,correct_digit),eps));
 }
 
+double NeuralNetwork::lossBatch(const Matrix &output, const Matrix &Y) const {
+    assert(output.rows() == Y.rows() && output.cols() == Y.cols());
+    double eps = 1e-15;
+    double total_loss = 0.0;
+    size_t batch_size = output.rows();
+
+    for (size_t i = 0; i < batch_size; i++) {
+        for (size_t j = 0; j < output.cols(); j++) {
+            if (Y(i,j) == 1.0) {
+                total_loss -= std::log(std::max(output(i,j), eps));
+                break; // une seule classe à 1
+            }
+        }
+    }
+
+    return total_loss / batch_size; // loss moyenne
+}
+
 const Layer *NeuralNetwork::getLayer(size_t index) const{
     if(index >= n_layers) return nullptr;
     return layers[index];
