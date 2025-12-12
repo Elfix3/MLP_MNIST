@@ -1,227 +1,223 @@
 #include "MNISTReader.h"
 #include <winsock2.h>
 
-MNISTReader::MNISTReader(const char* images_files, const char* labels_files){
-    std::ifstream imStream(images_files, std::ios::binary);
-    std::ifstream labStream(labels_files, std::ios::binary);
-    if (!imStream.is_open() || !labStream.is_open()) {
-        throw std::runtime_error("Impossible d'ouvrir les fichiers MNIST");
-    }
-    uint32_t headerIm[4] = {0x0}; // {magic number, number of images, num rows, num cols
-    uint32_t headerLab[2] = {0x0}; // {magic number, number of labels}
+MNISTReader::MNISTReader(){
+    //TRAINING SET STEAM
+    std::ifstream trainIM("data/train-images.idx3-ubyte", std::ios::binary);
+    std::ifstream trainLAB("data/train-labels.idx1-ubyte", std::ios::binary);
     
-
-    for(size_t i = 0 ; i<16; i++){
-        int c = imStream.get();
-        if (c == EOF) throw std::runtime_error("EOF inattendu dans header images");
-        headerIm[i/4] |= static_cast<uint32_t>(c) << (24 - 8*(i % 4));
-    }
+    //TESTING SET STREAM
+    std::ifstream testIM("data/t10k-images.idx3-ubyte", std::ios::binary);
+    std::ifstream testLAB("data/t10k-labels.idx1-ubyte", std::ios::binary);
     
-    for (int i = 0; i < 8; i++) {
-        int c = labStream.get();
-        if (c == EOF) throw std::runtime_error("EOF inattendu dans header labels");
-        headerLab[i/4] |= static_cast<uint32_t>(c) << (24 - 8*(i % 4));
+    if (!trainIM.is_open() || !trainLAB.is_open() || !testIM.is_open() || !testLAB.is_open()) {
+        throw std::runtime_error("Error : impossible to open some MNIST files, DON'T RENAME ORIGINAL MNIST FILES");
     }
 
-    assert(headerIm[0] == 2051 && "image magic number check");
-    assert(headerLab[0] == 2049 && "magic number check");
-    assert(headerLab[1] == headerIm[1] && "images and label numbers check");
+    uint32_t headerTrainIM[4] = {0x0};                          // {magic number, number of images, num rows, num cols}
+    uint32_t headerTrainLAB[2] = {0x0};                         // {magic number, number of labels}
+    uint32_t headerTestIM[4] = {0x0};                           // {magic number, number of images, num rows, num cols}
+    uint32_t headerTestLAB[2] = {0x0};                          // {magic number, number of labels}
+
+    for(size_t i = 0 ; i<16; i++){                              //extracts image header
+        int train = trainIM.get();
+        int test = testIM.get();
+        if ((train == EOF) || (train ==EOF)) throw std::runtime_error("EOF inattendu dans header images");
+        
+        headerTrainIM[i/4] |= static_cast<uint32_t>(train) << (24 - 8*(i % 4));
+        headerTestIM[i/4] |= static_cast<uint32_t>(test) << (24 - 8*(i % 4));
+
+    }
+
+    for (int i = 0; i < 8; i++) {                               //extracts label header
+        int train = trainLAB.get();
+        int test = testLAB.get();
+        if ((train == EOF) || (test == EOF)) throw std::runtime_error("EOF inattendu dans header labels");
+        headerTrainLAB[i/4] |= static_cast<uint32_t>(train) << (24 - 8*(i % 4));
+        headerTestLAB[i/4] |= static_cast<uint32_t>(test) << (24 - 8*(i % 4));
+    }
+
+    // --- Header matching check ---
+    assert((headerTestIM[0] == 2051 && headerTrainIM[0] == 2051)  &&  "Magic number failed, should be 2051 in MNIST official dataset for images");
+    assert((headerTestIM[1] == 10000) &&  "Images should be 10000 in the test set");
+    assert((headerTrainIM[1] == 60000) &&  "Images should be 60000 in the train set");
+
+    assert((headerTestLAB[0] == 2049 && headerTrainLAB[0] == 2049) && "Magic number failed, should be 2049 in MNIST official dataset for labels");
+    assert(headerTestLAB[1] == headerTestIM[1] && "Labels should be 10000 in the test set");
+    assert(headerTrainLAB[1] == headerTrainIM[1] && "Labels should be 60000 in the test set");
+
+    //config initalisation
+    n_imTrain = 60000;
+    n_imTest = 10000;
+    n_rows = 28;
+    n_cols = 28;
+
+    //allocation of all my ressources for exploiting the data set
+    trainSet.first = new uint8_t[n_imTrain*n_rows*n_cols];                  //each image is  (uint8_t * n_col *n_row) of size
+    trainSet.second = new uint8_t[n_imTrain];                               //each label is single uint8_t
+    testSet.first = new uint8_t[n_imTest*n_rows*n_cols];
+    testSet.second = new uint8_t[n_imTest];
     
+    std::streamsize image_bytes = n_imTrain * n_rows * n_cols;
+    // --- Images read ---
+    trainIM.read(reinterpret_cast<char*>(trainSet.first), image_bytes);
+    if (!trainIM) {
+        throw std::runtime_error("Lecture images train incomplète");
+    }
     
-    num_images = headerIm[1];
-    rows = headerIm[2];
-    cols = headerIm[3];
-
-    // --- Lecture labels ---
-    labels = new uint8_t[num_images];
-    labStream.read(reinterpret_cast<char*>(labels), num_images);
-    if (labStream.gcount() != static_cast<std::streamsize>(num_images))
-        throw std::runtime_error("Erreur lecture labels");
-
-    // --- Lecture images ---
-    images = new uint8_t[num_images * rows * cols];
-    imStream.read(reinterpret_cast<char*>(images), num_images * rows * cols);
-    if (imStream.gcount() != static_cast<std::streamsize>(num_images * rows * cols))
-        throw std::runtime_error("Erreur lecture images");
-
-    /* labels = new (std::nothrow) uint8_t[(size_t)headerLab[1]];
-    if(!labels){std::cerr<<"Incorrect labels allocation"<<std::endl;};
+    std::streamsize test_bytes  = n_imTest  * n_rows * n_cols;
+    testIM.read(reinterpret_cast<char*>(testSet.first), test_bytes);
+    if (!testIM) {
+        throw std::runtime_error("Lecture images test incomplète");
+    }
     
-    std::cout << "Position curseur avant read(): " << imStream.tellg() << std::endl;
-    std::cout << "Position curseur avant read(): " << labStream.tellg() << std::endl;
-    labStream.read(reinterpret_cast<char*>(labels),headerLab[1]);
+    // --- Labels read ---
+    trainLAB.read(reinterpret_cast<char*>(trainSet.second), n_imTrain);
+    if (!trainLAB) throw std::runtime_error("Lecture labels train incomplète");
 
-
-    images = new (std::nothrow) uint8_t[(size_t)headerIm[1]*headerIm[2]*headerIm[3]];
-    if(!images){std::cerr<<"Incorrect labels allocation"<<std::endl;};
-
-    imStream.read(reinterpret_cast<char*>(images),headerIm[1]*headerIm[2]*headerIm[3]); */
-
-    /* std::cout<<headerIm[0]<<std::endl; //debug
-    std::cout<<headerIm[1]<<std::endl;
-    std::cout<<headerIm[2]<<std::endl;
-    std::cout<<headerIm[3]<<std::endl;
-
-    
-    std::cout<<headerLab[0]<<std::endl;
-    std::cout<<headerLab[1]<<std::endl; */
-    
+    testLAB.read(reinterpret_cast<char*>(testSet.second), n_imTest);
+    if (!testLAB) throw std::runtime_error("Lecture labels test incomplète");  
 }
 
-/* MNISTReader::~MNISTReader(){
-    std::cout<<"this shit called";
-    delete []images;
-    delete [] labels;
-} */
-
-void MNISTReader::debug(){
-    for(int i = 0; i<100;i++){
-        std::cout<<(int)labels[i]<<std::endl;
-    }
+MNISTReader::~MNISTReader(){
+    delete []trainSet.first;
+    delete []trainSet.second;
+    delete []testSet.first;
+    delete []testSet.second;
 }
 
-const uint8_t *MNISTReader::getImage(size_t index)const {
-    if(!images){
+const uint8_t *MNISTReader::getImage(size_t index, bool fromTest)const {
+    const std::pair<uint8_t*,uint8_t*> &set = fromTest ? testSet : trainSet;                //selects the test or training set depending on fromTest
+    const auto  n_elements = fromTest ? n_imTest : n_imTrain;
+
+
+    if(!set.first){                                                                        //checks allocation
         std::cerr<<"No images initialized"<<std::endl;
         return nullptr;
     }
-    if(index>=num_images){
-        std::cerr<<"Invalid index"<<std::endl;
-        return nullptr;
+    if(index>=n_elements){                                                                  //checks out of bond
+            std::cerr<<"Invalid index"<<std::endl;
+            return nullptr;
     }
-
-    return images+(index*rows*cols);
+    return set.first+(index*n_rows*n_cols);
 }
 
-const uint8_t *MNISTReader::getLabel(size_t index) const{
-    if(!labels){
+const uint8_t *MNISTReader::getLabel(size_t index, bool fromTest) const{ 
+    
+    const std::pair<uint8_t*,uint8_t*> &set = fromTest ? testSet : trainSet;                //selects the test or training set depending on fromTest
+    const auto  n_elements = fromTest ? n_imTest : n_imTrain;
+ 
+    if(!set.second){                                                                        //checks allocation
         std::cerr<<"No labels initialized"<<std::endl;
         return nullptr;
     }
-    if(index>=num_images){
+    if(index>=n_elements){                                                                  //checks out of bond
         std::cerr<<"Invalid index"<<std::endl;
         return nullptr;
     }
-    return labels+index;
-
+    return set.second+index;
 }
 
-const uint32_t MNISTReader::get_num_images() const{
-    return num_images;
+const uint32_t MNISTReader::get_num_images_Train() const{
+    return n_imTrain;
 }
+
+const uint32_t MNISTReader::get_num_images_Test() const{
+    return n_imTest;
+}
+
+
 
 const uint32_t MNISTReader::get_num_rows() const{
-    return rows; //should be 28
+    return n_rows; //should be 28
 }
 
 const uint32_t MNISTReader::get_num_cols() const{
-    return cols; //should be 28
+    return n_cols; //should be 28
 }
 
 Matrix MNISTReader::X_bach(size_t batch_start, size_t batch_size){
-    Matrix X(batch_size,rows*cols);
-    for(size_t i = 0; i < batch_size; i++){
-        for(size_t j = 0; j<rows*cols;j++){
-            X(i,j) = static_cast<double>(*(getImage(batch_start + i) +j) );
+    Matrix X(batch_size,n_rows*n_cols);                                                     // X is a (batch_size × 784) matrix: one flattened MNIST image per row.
+    for(size_t i = 0; i < batch_size; i++){                                                 // Row i corresponds to image (batch_start + i).                                       
+        for(size_t j = 0; j<n_rows*n_cols;j++){
+            X(i,j) = static_cast<double>(*(getImage(batch_start + i,false) +j) );            //since we create batch from training images, we pass true parameter to getImage()
         }
     }
     return X;
 }
 
 Matrix MNISTReader::Y_bach(size_t batch_start, size_t batch_size){
-    Matrix Y(batch_size, 10); //10 classes
+    Matrix Y(batch_size, 10);                                                               //Y is a (batch_size × 10) matrix: giving one hot vector for correct output
     for (size_t i = 0; i < batch_size; i++) {
-        uint8_t label = *getLabel(batch_start + i);  
+        uint8_t label = *getLabel(batch_start + i,false);                                    //since we create batch from training images, we pass true parameter to getLabel()
         Y(i, label) = 1.0;
     }
     return Y;
 
 }
 
-void MNISTReader::showImageAndLabel(size_t i)
-{
-    using namespace std;
-    
-    for(size_t j = i*784; j< ((i+1)*784); j++){
-        cout << (((int)images[j] > 100) ? '.' : ' ') << " ";
 
-        if((j+1)%28 == 0){cout<<endl;}
-    }
-    cout<<endl;
-    cout<<(int)labels[i]<<endl;
-
-    cout<<endl;
-    cout<<endl;
-    cout<<endl;
-}
-
-void MNISTReader::plot_mnist_direct(size_t imageIndex) {
+void MNISTReader::plot_mnist_direct(size_t imageIndex, bool fromTest) {                     //true if from test set, false if comes from training set
+    const std::pair<uint8_t*,uint8_t*> &set = fromTest ? testSet : trainSet;                //selects the test or training set depending on fromTest
     std::ofstream dataFile("image.dat");
-
     for (int y = 0; y<28; y++) {
         for (int x = 0; x<28; x++) {
             dataFile << x << " " << y << " " 
-                     << static_cast<int>(images[(imageIndex * 784) + ((28-y) * 28) + x]) 
-                     << "\n";
+            << static_cast<int>(set.first[(imageIndex * 784) + ((27-y) * 28) + x])          //filps the image verticaly
+            << "\n";
+            dataFile << "\n"; 
         }
-        dataFile << "\n"; // sépare les lignes pour Gnuplot
     }
-
-    dataFile.close(); // fermer avant d'appeler Gnuplot
+    dataFile.close();
     system("gnuplot -persistent -e \"set view map; set palette gray; plot 'image.dat' with image\"");
-    //std::remove("image.dat");
+    std::remove("image.dat");
 }
 
-void MNISTReader::plot_mnist_direct(const Matrix &img)
-{
+void MNISTReader::plot_mnist_direct(const Matrix &img) {
     assert(img.rows() == 1 && img.cols() == 784);
 
     std::ofstream dataFile("image.dat");
+    if (!dataFile.is_open()) {
+        std::cerr << "Erreur : impossible d'ouvrir image.dat\n";
+        return;
+    }
 
-    for (int y = 0; y < 28; y++) {
-        for (int x = 0; x < 28; x++) {
-
-            // même convention d'inversion verticale que dans ta version
-            int index = (28 - y) * 28 + x;
-
+    for (size_t y = 0; y < 28; ++y) {
+        for (size_t x = 0; x < 28; ++x) {
+            size_t index = (27 - y) * 28 + x;
             dataFile << x << " " << y << " "
                      << static_cast<int>(img(0, index))
                      << "\n";
         }
-        dataFile << "\n"; 
+        dataFile << "\n";
     }
-
     dataFile.close();
 
-    system("gnuplot -persistent -e \"set view map; set palette gray; plot 'image.dat' with image\"");
-}
-
-
-
-/* void MNISTReader::readData(const char *fileName)
-{
-    std::ifstream file(fileName,std::ios::binary);
-    if(file){
-        std::cout<<"Fichier lu\n";
-    } else {
-        std::cout<<"Erreur lecture fichier\n";
-    }
-    assert(file);
-    file.seekg(16+784*16, std::ios::beg);
-
-    const int rows = 28;
-    const int cols = 28;
-
-    for (int r = 0; r < rows; ++r) {
-        for (int c = 0; c < cols; ++c) {
-            unsigned char pixel;
-            file.read(reinterpret_cast<char*>(&pixel), 1);
-            std::cout << std::setw(3) << std::dec << (int)pixel << " ";
-        }
-        std::cout << "\n";
+    int ret = system("gnuplot -persistent -e \"set view map; set palette gray; plot 'image.dat' with image\"");
+    if (ret != 0) {
+        std::cerr << "Erreur : appel gnuplot échoué\n";
     }
 }
- */
 
 
 
+
+
+
+/* std::cout<<headerTestIM[0]<<std::endl;
+    std::cout<<headerTestIM[1]<<std::endl;
+    std::cout<<headerTestIM[2]<<std::endl;
+    std::cout<<headerTestIM[3]<<std::endl;
+
+    std::cout<<headerTrainIM[0]<<std::endl;
+    std::cout<<headerTrainIM[1]<<std::endl;
+    std::cout<<headerTrainIM[2]<<std::endl;
+    std::cout<<headerTrainIM[3]<<std::endl;
+    std::cout<<std::endl;
+
+
+    std::cout<<headerTestLAB[0]<<std::endl;
+    std::cout<<headerTestLAB[1]<<std::endl;
+
+    std::cout<<headerTrainLAB[0]<<std::endl;
+    std::cout<<headerTrainLAB[1]<<std::endl; */

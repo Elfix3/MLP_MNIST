@@ -13,37 +13,36 @@
 
 class MNISTReader{
     private :
-        uint8_t *images = nullptr;
-        uint8_t *labels = nullptr;
-        uint32_t num_images = 0;
-        uint32_t rows = 0;
-        uint32_t cols = 0;
+        uint8_t *imagesTrain= nullptr;
+        uint8_t *labelsTrain= nullptr;
+
+
+        std::pair<uint8_t*,uint8_t*> trainSet = {nullptr,nullptr}; // images first, labels second,  should be 60k
+        std::pair<uint8_t*,uint8_t*> testSet = {nullptr,nullptr};  // images first, labels second, should be 10k
+
+        uint32_t n_imTrain;
+        uint32_t n_imTest;
+        uint32_t n_rows;
+        uint32_t n_cols;
         
-
         public :
-            MNISTReader(const char* images_file, const char* labels_file);
-            //~MNISTReader();
-            void debug();
+            MNISTReader();
+            ~MNISTReader();
 
-            const uint8_t* getImage(size_t index) const;
-            const uint8_t* getLabel(size_t index) const;
+            const uint8_t* getImage(size_t index, bool fromTest) const;
+            const uint8_t* getLabel(size_t index, bool fromTest) const; 
 
-            const uint32_t get_num_images() const;
+            const uint32_t get_num_images_Train() const;
+            const uint32_t get_num_images_Test() const;
+
             const uint32_t get_num_rows() const;
             const uint32_t get_num_cols() const;
 
             Matrix X_bach(size_t batch_start, size_t batch_size);
             Matrix Y_bach(size_t batch_start, size_t batch_size);
 
-
-            //TO DELETE
-            void showImageAndLabel(size_t i); //command line output
-            void plot_mnist_direct(size_t imageIndex); //under test
-            void plot_mnist_direct(const Matrix &img);
-
-
-
-
+            void plot_mnist_direct(size_t imageIndex, bool fromTest);
+            void plot_mnist_direct(const Matrix &img);                                      //under test
 };
 
 

@@ -10,35 +10,32 @@ Layer::Layer(size_t n_input_parameters, size_t n_neural, ActivationType type) :
 {}
 
 const Matrix &Layer::forward(const Matrix &X){
-    A_prev = X;
-    Z = X*W+b.broadcastRows(X.rows());
-
+    A_prev = X;                                     //we store the previous X
+    Z = X*W+b.broadcastRows(X.rows());              //forward prop equation
     
     switch(type){
         case RELU :
-            A = Z.RELU();
+            A = Z.RELU();                           //max(Z,0)
         break;
         case SOFTMAX :
-            A = Z.SOFTMAX();
-
+            A = Z.SOFTMAX();                        //turns the last n categories into probabilistic distribution
         break;
-        default :
-
+        default :                                   //no sigmoid or tanh will be implemented
         break;
     }
     
     return A;
 }
 Matrix Layer::backward(const Matrix &dA){
-    int n = dA.cols(); //batch size
-    Matrix dZ;
-    Matrix maskZ = Z; //f'Z
+    int n = dA.cols();                              //batch size
+    Matrix dZ;                                      //variation of the activation
+    Matrix maskZ = Z;                               //f'Z
     
     switch(type){
         case SOFTMAX :
-            dZ = dA; //for softmax only, n samples * 10 input neurons
+            dZ = dA;                                //derivative dZ is the same as dA ONLY FOR SOFTMAX
 
-            dW = (A_prev.transpose()*dZ) / n;
+            dW = (A_prev.transpose()*dZ) / n;       //backprop equation
             dB = dZ.sum_rows() / n;
         break;
         case RELU :
@@ -54,10 +51,9 @@ Matrix Layer::backward(const Matrix &dA){
             
             }
             
+            dZ = dA^maskZ;                          //computation of the derivative dZ
             
-            dZ = dA^maskZ;
-            dW = (A_prev.transpose()*dZ) / n;
-
+            dW = (A_prev.transpose()*dZ) / n;       //backprop equation
             dB = dZ.sum_rows() / n;
 
             
@@ -67,13 +63,11 @@ Matrix Layer::backward(const Matrix &dA){
     }
     
     
-    Matrix dA_prev = dZ*W.transpose(); //1*m neurons in the layer
-    
-   
+    Matrix dA_prev = dZ*W.transpose();              //computes the previous dA   
     return dA_prev;
 }
 
-void Layer::update(double learning_rate){
+void Layer::update(const double &learning_rate){
     W-= dW*learning_rate;
     b-= dB*learning_rate;
 }
