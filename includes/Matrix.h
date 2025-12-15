@@ -44,6 +44,7 @@ class Matrix{
         // =========================
 
         const double* getDatas() const;
+        double* getDatas();
 
         double& operator()(size_t i, size_t j);             // accès modifiable
         const double& operator()(size_t i, size_t j) const; // accès lecture seule

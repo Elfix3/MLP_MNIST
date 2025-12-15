@@ -13,11 +13,8 @@ int main(){
         {10, SOFTMAX}
     };
     NeuralNetwork nn(784,network_config);
-    //std::cout<<nn.getLayer(2)->getType();
-    nn.save();
 
-    assert(2==0);
-    
+
     int usr_choice =-1;
     bool isAlive = true;
     NeuralNetwork **mySetOfNeurals = new NeuralNetwork*[10];
@@ -46,12 +43,30 @@ int main(){
             break;
 
             case 2:
-                //show info
+            {
+                Matrix X_test(1,784,reader.getImage(0,1));
+                Matrix Y_test = nn.forward(X_test);
+                Y_test.showProbability();
+
+                reader.plot_mnist_direct(0,1);
+
+                nn.save("my trained NN");
+                std::cout<<"Network saved:)\n";
+            }
+                
             break;
 
 
             case 3:
-                //train NN process, all ? separatly ?
+            {
+                NeuralNetwork nn2("my trained NN");
+                std::cout<<"Network loaded"<<std::endl;
+                Matrix X_test(1,784,reader.getImage(0,1));
+                Matrix Y_test = nn2.forward(X_test);
+                Y_test.showProbability();
+            }
+
+
             break;
 
             case 4 :

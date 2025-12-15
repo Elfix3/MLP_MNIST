@@ -31,7 +31,7 @@ class Layer{
 
         void update(const double& learning_rate);
 
-        //getters
+        //getters const
         const Matrix& getA_prev() const;
         const Matrix& getW() const;
         const Matrix& getb() const;
@@ -39,6 +39,10 @@ class Layer{
         const Matrix& getA() const;
         const ActivationType& getType() const;
 
+        //getters non const
+        Matrix& getW();
+        Matrix& getb();
+        
         const Matrix& getdW() const;
         const Matrix& getdB() const;
         

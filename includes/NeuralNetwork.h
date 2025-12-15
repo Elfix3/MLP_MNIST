@@ -7,13 +7,13 @@
 class NeuralNetwork{
     private:
         uint32_t id = 12; //default ID for test purposes
-        uint32_t inputSize = 784; //is the size of the image/data processed
+        size_t inputSize = 784; //is the size of the image/data processed
         Layer **layers;
         size_t n_layers;
         mutable Matrix Y;
 
     public:
-        
+        NeuralNetwork();
         NeuralNetwork(size_t n_first_input, const std::vector<std::pair<size_t, ActivationType>> &v);   //Sets up a Neural Network with a given conf
         /*################ EXAMPLE OF NETWORK CONFING #########################
         std::vector<std::pair<size_t,ActivationType>> network_config = {
@@ -22,6 +22,7 @@ class NeuralNetwork{
             {10, SOFTMAX}
         };
          ###################################################################*/
+        NeuralNetwork(const char* filename);
 
         ~NeuralNetwork();
 
@@ -33,7 +34,9 @@ class NeuralNetwork{
         double lossBatch(const Matrix &output, const Matrix &Y) const;                                   //Comptes the Loss on a complete batch
         
         const Layer* getLayer(size_t index) const;                                                       //gets specific layer by index
-        void save();                                                                                     //
+        
+        void save(const char*);                                                                                     //
+        void load(const char* filename);
 
         static uint32_t bigToLittleEndian(uint32_t little);
 };

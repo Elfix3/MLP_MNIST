@@ -82,6 +82,10 @@ const double *Matrix::getDatas() const{
     return datas;                                           //only to use for writing binaries !!
 }
 
+double *Matrix::getDatas(){
+    return datas;
+}
+
 double &Matrix::operator()(size_t i, size_t j){
     assert((i<n_rows && j<n_cols) && "Error, out of bound array access");
     return datas[i*n_cols+j];

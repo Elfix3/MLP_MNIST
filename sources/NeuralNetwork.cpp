@@ -1,6 +1,9 @@
 #include "NeuralNetwork.h"
 
-NeuralNetwork::NeuralNetwork(size_t n_first_input,const std::vector<std::pair<size_t, ActivationType>> &v){
+NeuralNetwork::NeuralNetwork(){}
+
+NeuralNetwork::NeuralNetwork(size_t n_first_input, const std::vector<std::pair<size_t, ActivationType>> &v)
+{
     if(v.size()<2){
         throw std::invalid_argument("Please add at least 2 layers");
     }
@@ -11,11 +14,59 @@ NeuralNetwork::NeuralNetwork(size_t n_first_input,const std::vector<std::pair<si
         size_t output = v[i].first; 
         ActivationType act  = v[i].second;
 
-        std::cout<<input<<" "<<output<< "\n";
+        //std::cout<<input<<" "<<output<< "\n";                         //uncomment to see network structure
         layers[i] = new Layer(input,output,act);
     }
 }
+
+NeuralNetwork::NeuralNetwork(const char *filename){
+
+
+    std::ifstream file(std::string("saved_networks/")+filename, std::ios::binary);
+    if(!file){
+        throw std::runtime_error("Error : impossible to open file");
+    }
+    uint32_t magicNumber;
+    uint32_t nnId;
+    uint32_t nnlayers;
+    uint32_t nnInputSize;
+
+    file.read(reinterpret_cast<char*>(&magicNumber), sizeof(magicNumber));
+    file.read(reinterpret_cast<char*>(&nnId), sizeof(nnId));
+    file.read(reinterpret_cast<char*>(&nnlayers), sizeof(nnlayers));
+    file.read(reinterpret_cast<char*>(&nnInputSize), sizeof(nnInputSize));
+    assert(magicNumber == 0x4E4E3031 && "Magic number checkup failed");
     
+
+    id = static_cast<uint32_t>(nnId);                          //already uint32_t
+    n_layers = static_cast<size_t>(nnlayers);
+    inputSize = static_cast<size_t>(nnInputSize);
+    layers = new Layer*[n_layers];                             // allocates layers
+
+    for(size_t i = 0; i<n_layers;i++){
+        uint32_t layer_index;                                   //if we want to index in a different way than the for loop
+        uint32_t input;
+        uint32_t output;
+        uint32_t act;
+
+        file.read(reinterpret_cast<char*>(&layer_index), sizeof(layer_index));
+        file.read(reinterpret_cast<char*>(&act), sizeof(act));
+        file.read(reinterpret_cast<char*>(&input), sizeof(input));
+        file.read(reinterpret_cast<char*>(&output),sizeof(output));
+
+        std::cout<<(int)layer_index<<std::endl;
+        std::cout<<(int)act<<std::endl;
+        std::cout<<(int)input<<std::endl;
+        std::cout<<(int)output<<std::endl;
+
+        layers[i] = new Layer(static_cast<size_t>(input),static_cast<size_t>(output), static_cast<ActivationType>(act));
+        
+        file.read(reinterpret_cast<char*>(layers[i]->getW().getDatas()), sizeof(double)*input*output);
+        file.read(reinterpret_cast<char*>(layers[i]->getb().getDatas()), sizeof(double)*output);
+    }
+
+}   
+
 
 NeuralNetwork::~NeuralNetwork(){
     for(size_t i = 0; i< n_layers; i ++){
@@ -78,9 +129,9 @@ const Layer *NeuralNetwork::getLayer(size_t index) const{               //return
     return layers[index];
 }
 
-void NeuralNetwork::save(){ //path needed
+void NeuralNetwork::save(const char* filename){ //path needed
     //opening of the file
-    std::ofstream file("saved_networks/first save", std::ios::binary);
+    std::ofstream file(std::string("saved_networks/")+filename, std::ios::binary);
     if(!file){
         std::cerr<<"Error with file opening\n";
         return;
@@ -88,10 +139,11 @@ void NeuralNetwork::save(){ //path needed
     //network header construction
     uint32_t magicNumber = 0x4E4E3031;
     uint32_t n_layers_32 = static_cast<uint32_t>(n_layers);
+    uint32_t inputSize_32 = static_cast<uint32_t>(inputSize);
     file.write(reinterpret_cast<const char*>(&magicNumber), sizeof(magicNumber));                   //magic number in char N N 0 1
     file.write(reinterpret_cast<const char*>(&id), sizeof(id));                                     //neural network id
     file.write(reinterpret_cast<const char*>(&n_layers_32), sizeof(n_layers_32));                   //n_layers in uint32_t
-    file.write(reinterpret_cast<const char*>(&inputSize), sizeof(inputSize));                       //should be 784 for 28*28 picture
+    file.write(reinterpret_cast<const char*>(&inputSize_32), sizeof(inputSize_32));                       //should be 784 for 28*28 picture
 
     for(uint32_t i = 0; i<n_layers_32; i++){
         const Layer *current = this->getLayer((size_t)i);
@@ -117,7 +169,9 @@ void NeuralNetwork::save(){ //path needed
     file.close();
 }
 
-
+void NeuralNetwork::load(const char *filename){
+    std::cout<<"try";
+}
 
 uint32_t NeuralNetwork::bigToLittleEndian(uint32_t big){
     return( (big&0xFF) << 24| (big&0xFF00) <<8| (big&0xFF0000)>>8 | (big&0xFF000000)>>24);

@@ -97,6 +97,14 @@ const ActivationType &Layer::getType() const{
     return type;
 }
 
+Matrix &Layer::getW(){
+    return W;
+}
+
+Matrix &Layer::getb(){
+    return b;
+}
+
 const Matrix &Layer::getdW() const{
     return dW;
 }
