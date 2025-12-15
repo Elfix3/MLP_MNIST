@@ -72,7 +72,12 @@ void Layer::update(const double &learning_rate){
     b-= dB*learning_rate;
 }
 
-const Matrix &Layer::getW() const{
+const Matrix &Layer::getA_prev() const{
+    return A_prev;
+}
+
+const Matrix &Layer::getW() const
+{
     return W;
 }
 
@@ -86,6 +91,10 @@ const Matrix &Layer::getZ() const{
 
 const Matrix &Layer::getA() const{
     return A;
+}
+
+const ActivationType &Layer::getType() const{
+    return type;
 }
 
 const Matrix &Layer::getdW() const{

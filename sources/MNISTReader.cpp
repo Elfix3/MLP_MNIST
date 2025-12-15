@@ -198,26 +198,3 @@ void MNISTReader::plot_mnist_direct(const Matrix &img) {
         std::cerr << "Erreur : appel gnuplot échoué\n";
     }
 }
-
-
-
-
-
-
-/* std::cout<<headerTestIM[0]<<std::endl;
-    std::cout<<headerTestIM[1]<<std::endl;
-    std::cout<<headerTestIM[2]<<std::endl;
-    std::cout<<headerTestIM[3]<<std::endl;
-
-    std::cout<<headerTrainIM[0]<<std::endl;
-    std::cout<<headerTrainIM[1]<<std::endl;
-    std::cout<<headerTrainIM[2]<<std::endl;
-    std::cout<<headerTrainIM[3]<<std::endl;
-    std::cout<<std::endl;
-
-
-    std::cout<<headerTestLAB[0]<<std::endl;
-    std::cout<<headerTestLAB[1]<<std::endl;
-
-    std::cout<<headerTrainLAB[0]<<std::endl;
-    std::cout<<headerTrainLAB[1]<<std::endl; */

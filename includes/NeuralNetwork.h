@@ -2,11 +2,12 @@
 #define NEURAL_NETWORK
 
 #include "Layer.h"
-
+#include <fstream>
 
 class NeuralNetwork{
     private:
-
+        uint32_t id = 12; //default ID for test purposes
+        uint32_t inputSize = 784; //is the size of the image/data processed
         Layer **layers;
         size_t n_layers;
         mutable Matrix Y;
@@ -32,6 +33,9 @@ class NeuralNetwork{
         double lossBatch(const Matrix &output, const Matrix &Y) const;                                   //Comptes the Loss on a complete batch
         
         const Layer* getLayer(size_t index) const;                                                       //gets specific layer by index
+        void save();                                                                                     //
+
+        static uint32_t bigToLittleEndian(uint32_t little);
 };
 
 #endif

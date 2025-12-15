@@ -43,6 +43,8 @@ class Matrix{
         // ACCÈS AUX DONNÉES
         // =========================
 
+        const double* getDatas() const;
+
         double& operator()(size_t i, size_t j);             // accès modifiable
         const double& operator()(size_t i, size_t j) const; // accès lecture seule
 

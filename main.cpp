@@ -7,18 +7,16 @@
 
 int main(){
     MNISTReader reader; //now only one reader for test and training images
-
-    Matrix a(1,784,IMAGE_GRAY_SCALE);
-    reader.plot_mnist_direct(a);
-
-    assert(2==0);
     std::vector<std::pair<size_t,ActivationType>> network_config = {
         {26, RELU},
         {26, RELU},
         {10, SOFTMAX}
     };
     NeuralNetwork nn(784,network_config);
-    
+    //std::cout<<nn.getLayer(2)->getType();
+    nn.save();
+
+    assert(2==0);
     
     int usr_choice =-1;
     bool isAlive = true;

@@ -78,3 +78,58 @@ const Layer *NeuralNetwork::getLayer(size_t index) const{               //return
     return layers[index];
 }
 
+void NeuralNetwork::save(){ //path needed
+    //opening of the file
+    std::ofstream file("saved_networks/first save", std::ios::binary);
+    if(!file){
+        std::cerr<<"Error with file opening\n";
+        return;
+    }
+    //network header construction
+    uint32_t magicNumber = 0x4E4E3031;
+    uint32_t n_layers_32 = static_cast<uint32_t>(n_layers);
+    file.write(reinterpret_cast<const char*>(&magicNumber), sizeof(magicNumber));                   //magic number in char N N 0 1
+    file.write(reinterpret_cast<const char*>(&id), sizeof(id));                                     //neural network id
+    file.write(reinterpret_cast<const char*>(&n_layers_32), sizeof(n_layers_32));                   //n_layers in uint32_t
+    file.write(reinterpret_cast<const char*>(&inputSize), sizeof(inputSize));                       //should be 784 for 28*28 picture
+
+    for(uint32_t i = 0; i<n_layers_32; i++){
+        const Layer *current = this->getLayer((size_t)i);
+        uint32_t type = static_cast<uint32_t>(current->getType());                                  //proper cast from ENUM to uint32_t
+        uint32_t input_size_32 = static_cast<uint32_t>(current->getW().rows());                     //gets the input size of current layer
+        uint32_t output_size_32 = static_cast<uint32_t>(current->getW().cols());
+        
+
+        file.write(reinterpret_cast<const char*>(&i), sizeof(i));                                   //index of the layer
+        file.write(reinterpret_cast<const char*>(&type), sizeof(type));                             //activation type, 0 for RELU, 3 for SOFTMAX
+        file.write(reinterpret_cast<const char*>(&input_size_32), sizeof(input_size_32));           //input size
+        file.write(reinterpret_cast<const char*>(&output_size_32), sizeof(output_size_32));          //to output size (each layer is rows*cols)
+
+        const Matrix& W = current->getW();
+        const Matrix& b = current->getb();
+
+        assert(W.rows() == input_size_32);
+        assert(W.cols() == output_size_32);
+
+        file.write(reinterpret_cast<const char*>(W.getDatas()), sizeof(double)*input_size_32*output_size_32);       //casts the weights to raw binaries
+        file.write(reinterpret_cast<const char*>(b.getDatas()), sizeof(double)*output_size_32);                     //casts the biasis
+    }
+    file.close();
+}
+
+
+
+uint32_t NeuralNetwork::bigToLittleEndian(uint32_t big){
+    return( (big&0xFF) << 24| (big&0xFF00) <<8| (big&0xFF0000)>>8 | (big&0xFF000000)>>24);
+}
+ //structure of header is :
+    //4 bytes magic number
+    //4 bytes id
+    //4 bytes n_layers
+    //4 bytes input size
+    
+    //and then for each layer :
+    //4 bytes layer num (0 for first , n_layers-1 for the last)
+    //4 bytes activation type
+    //4 bytes input_size
+    //4 bytes output_size
