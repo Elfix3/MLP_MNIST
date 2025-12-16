@@ -8,8 +8,9 @@
 int main(){
     MNISTReader reader; //now only one reader for test and training images
     std::vector<std::pair<size_t,ActivationType>> network_config = {
-        {26, RELU},
-        {26, RELU},
+        {64, RELU},
+        {32, RELU},
+        {16, RELU},
         {10, SOFTMAX}
     };
     NeuralNetwork nn(784,network_config);
@@ -18,18 +19,21 @@ int main(){
     int usr_choice =-1;
     bool isAlive = true;
     NeuralNetwork **mySetOfNeurals = new NeuralNetwork*[10];
-    int batch_size = 30;
+    int train_size = 60000; // typiquement 60000
+    int batch_size = 64;
+    //int epochs = 10;
 
     bannerMessage("Hello, welcome to this MLP training program, here is an overview of what you can do with this tool :");
 
     while(isAlive){
-        getSecureIntChoice({"Create neural network","Show infos"}, usr_choice);
+        getSecureIntChoice({"Create network","Train settings","","Load"}, usr_choice);
         switch(usr_choice){
             
             case 1:
+            //training ex
             {
-            for (int epoch = 0; epoch < 1; epoch++) {
-                for (int batch_start = 0; batch_start < batch_size*500; batch_start += batch_size) {
+            for (int epoch = 0; epoch < 10; epoch++) {
+                for (int batch_start = 0;batch_start + batch_size <= train_size; batch_start += batch_size) {
                     Matrix X = reader.X_bach(batch_start,batch_size);
                     Matrix Y = reader.Y_bach(batch_start,batch_size);
                     Matrix A = nn.forward(X.Normalize(255));
@@ -38,20 +42,24 @@ int main(){
                     std::cout<<nn.lossBatch(A,Y)<<std::endl;
                 }
                 }
+                std::cout<<"done"<<std::endl;
             }
 
             break;
 
             case 2:
             {
-                Matrix X_test(1,784,reader.getImage(0,1));
-                Matrix Y_test = nn.forward(X_test);
-                Y_test.showProbability();
+                size_t n_tests = 10000;
+                size_t n_success = 0;
+                for(size_t i = 0; i<n_tests;i++){
+                    Matrix X_test(1,784,reader.getImage(i,true));
+                    Matrix Y_test = nn.forward(X_test);
+                    if((int)Y_test.getMaxIndex() == (int)*reader.getLabel(i,true))n_success++;
+                }
+                double accuracy = (double)n_success/(double)n_tests;
+                std::cout<<"Accuracy of the network : "<<accuracy<<std::endl;
 
-                reader.plot_mnist_direct(0,1);
-
-                nn.save("my trained NN");
-                std::cout<<"Network saved:)\n";
+                
             }
                 
             break;
@@ -59,18 +67,26 @@ int main(){
 
             case 3:
             {
-                NeuralNetwork nn2("my trained NN");
-                std::cout<<"Network loaded"<<std::endl;
-                Matrix X_test(1,784,reader.getImage(0,1));
-                Matrix Y_test = nn2.forward(X_test);
-                Y_test.showProbability();
+               nn.save("trained network");
             }
 
 
             break;
 
             case 4 :
-                //gives the settings parameters
+            {
+                NeuralNetwork nn2("trained network");
+                size_t n_tests = 10000;
+                size_t n_success = 0;
+                for(size_t i = 0; i<n_tests;i++){
+                    Matrix X_test(1,784,reader.getImage(i,true));
+                    Matrix Y_test = nn2.forward(X_test);
+                    if((int)Y_test.getMaxIndex() == (int)*reader.getLabel(i,true))n_success++;
+                }
+                double accuracy = (double)n_success/(double)n_tests;
+                std::cout<<"Accuracy of the network : "<<accuracy<<std::endl;
+            }
+
             break;
             
             case 5:

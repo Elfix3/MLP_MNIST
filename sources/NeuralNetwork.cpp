@@ -54,11 +54,6 @@ NeuralNetwork::NeuralNetwork(const char *filename){
         file.read(reinterpret_cast<char*>(&input), sizeof(input));
         file.read(reinterpret_cast<char*>(&output),sizeof(output));
 
-        std::cout<<(int)layer_index<<std::endl;
-        std::cout<<(int)act<<std::endl;
-        std::cout<<(int)input<<std::endl;
-        std::cout<<(int)output<<std::endl;
-
         layers[i] = new Layer(static_cast<size_t>(input),static_cast<size_t>(output), static_cast<ActivationType>(act));
         
         file.read(reinterpret_cast<char*>(layers[i]->getW().getDatas()), sizeof(double)*input*output);

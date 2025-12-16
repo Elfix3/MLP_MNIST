@@ -97,6 +97,7 @@ const uint8_t *MNISTReader::getImage(size_t index, bool fromTest)const {
     }
     if(index>=n_elements){                                                                  //checks out of bond
             std::cerr<<"Invalid index"<<std::endl;
+            std::cout<<index;
             return nullptr;
     }
     return set.first+(index*n_rows*n_cols);

@@ -46,6 +46,8 @@ class Matrix{
         const double* getDatas() const;
         double* getDatas();
 
+        size_t getMaxIndex() const;
+
         double& operator()(size_t i, size_t j);             // accès modifiable
         const double& operator()(size_t i, size_t j) const; // accès lecture seule
 

@@ -86,6 +86,16 @@ double *Matrix::getDatas(){
     return datas;
 }
 
+size_t Matrix::getMaxIndex() const{                         //ABSOLUTLY HORRIBLE TO USE ON NON VECTOR ONLY FOR TEST PURPOSES !!!!
+    size_t maxIndex = 0;
+    for(size_t i = 1; i<n_rows*n_cols;i++){
+        if (datas[i] > datas[maxIndex]) {
+            maxIndex = i;
+        }
+    }
+    return maxIndex;
+}
+
 double &Matrix::operator()(size_t i, size_t j){
     assert((i<n_rows && j<n_cols) && "Error, out of bound array access");
     return datas[i*n_cols+j];
