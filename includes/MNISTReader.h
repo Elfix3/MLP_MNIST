@@ -9,6 +9,8 @@
 #include <iomanip>
 #include <cstdio>
 #include <cstdint>
+#include <algorithm>
+
 
 
 class MNISTReader{
@@ -38,8 +40,11 @@ class MNISTReader{
             const uint32_t get_num_rows() const;
             const uint32_t get_num_cols() const;
 
-            Matrix X_bach(size_t batch_start, size_t batch_size);
-            Matrix Y_bach(size_t batch_start, size_t batch_size);
+            Matrix X_bach(size_t batch_start, size_t batch_size); //OLD
+            Matrix Y_bach(size_t batch_start, size_t batch_size); //OLD
+
+            Matrix X_bach(const std::vector<size_t> index);
+            Matrix Y_bach(const std::vector<size_t> index);
 
             void plot_mnist_direct(size_t imageIndex, bool fromTest);
             void plot_mnist_direct(const Matrix &img);                                      //under test

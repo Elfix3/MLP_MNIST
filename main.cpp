@@ -1,111 +1,49 @@
 
 #include "MNISTReader.h"
-#include "NeuralNetwork.h"
 #include "cmd_line_tools.h"
-
 #include <cstdlib>
 
+#include "MenuNavigator.h"
+#include "NnManager.h"
+
+
 int main(){
-    MNISTReader reader; //now only one reader for test and training images
+    MenuNode *main = new MenuNode("MLP trainer");
+    MenuNavigator *nav= new MenuNavigator(main);
+
+    main->addOption("Neural networks",nullptr); //option 0
+    main->addOption("Train network",nullptr);
+    main->addOption("Evaluate",nullptr);
+    main->addOption("Save",nullptr);
+
+    main->options[0]->addOption("Show my networks", [](){});
+    main->options[0]->addOption("Create network", [](){});
+    main->options[0]->addOption("Back", [nav](){ nav->back();});
+
+    main->options[1]->addOption("Edit training configuration", [](){});
+    main->options[1]->addOption("Train all", [](){std::cout<<"train sequence start"<<std::endl;});
+    main->options[1]->addOption("Back", [nav](){ nav->back();});
+
+    main->options[2]->addOption("Evaluate",[](){});
+    main->options[2]->addOption("Evaluate all",[](){});
+    main->options[2]->addOption("Back",[nav](){ nav->back();});
+
+    
+
+    
     std::vector<std::pair<size_t,ActivationType>> network_config = {
-        {64, RELU},
         {32, RELU},
         {16, RELU},
         {10, SOFTMAX}
     };
     NeuralNetwork nn(784,network_config);
-
-
-    int usr_choice =-1;
-    bool isAlive = true;
-    NeuralNetwork **mySetOfNeurals = new NeuralNetwork*[10];
-    int train_size = 60000; // typiquement 60000
-    int batch_size = 64;
-    //int epochs = 10;
-
-    bannerMessage("Hello, welcome to this MLP training program, here is an overview of what you can do with this tool :");
-
-    while(isAlive){
-        getSecureIntChoice({"Create network","Train settings","","Load"}, usr_choice);
-        switch(usr_choice){
-            
-            case 1:
-            //training ex
-            {
-            for (int epoch = 0; epoch < 10; epoch++) {
-                for (int batch_start = 0;batch_start + batch_size <= train_size; batch_start += batch_size) {
-                    Matrix X = reader.X_bach(batch_start,batch_size);
-                    Matrix Y = reader.Y_bach(batch_start,batch_size);
-                    Matrix A = nn.forward(X.Normalize(255));
-                    nn.backward(A-Y);
-                    nn.update();
-                    std::cout<<nn.lossBatch(A,Y)<<std::endl;
-                }
-                }
-                std::cout<<"done"<<std::endl;
-            }
-
-            break;
-
-            case 2:
-            {
-                size_t n_tests = 10000;
-                size_t n_success = 0;
-                for(size_t i = 0; i<n_tests;i++){
-                    Matrix X_test(1,784,reader.getImage(i,true));
-                    Matrix Y_test = nn.forward(X_test);
-                    if((int)Y_test.getMaxIndex() == (int)*reader.getLabel(i,true))n_success++;
-                }
-                double accuracy = (double)n_success/(double)n_tests;
-                std::cout<<"Accuracy of the network : "<<accuracy<<std::endl;
-
-                
-            }
-                
-            break;
-
-
-            case 3:
-            {
-               nn.save("trained network");
-            }
-
-
-            break;
-
-            case 4 :
-            {
-                NeuralNetwork nn2("trained network");
-                size_t n_tests = 10000;
-                size_t n_success = 0;
-                for(size_t i = 0; i<n_tests;i++){
-                    Matrix X_test(1,784,reader.getImage(i,true));
-                    Matrix Y_test = nn2.forward(X_test);
-                    if((int)Y_test.getMaxIndex() == (int)*reader.getLabel(i,true))n_success++;
-                }
-                double accuracy = (double)n_success/(double)n_tests;
-                std::cout<<"Accuracy of the network : "<<accuracy<<std::endl;
-            }
-
-            break;
-            
-            case 5:
-                //get infos on a neural network
-            break;
-
-            case 6 :
-                //recap ?
-            break;
-            
-            case 112 :
-                isAlive = false;                        //exit code
-            break;             
-            default:
-
-            break;
-        }
-            
-    }
-    delete []mySetOfNeurals;
-
+    
+    NnManager manager;
+    manager.pushNn(&nn);
+    manager.train(0);
+    manager.compute_accuracy(0);
+    
+    //nav->run();
+    
+    return 0;
 }

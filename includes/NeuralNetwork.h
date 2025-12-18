@@ -6,7 +6,7 @@
 
 class NeuralNetwork{
     private:
-        uint32_t id = 12; //default ID for test purposes
+        uint32_t id = 1; //default ID for test purposes
         size_t inputSize = 784; //is the size of the image/data processed
         Layer **layers;
         size_t n_layers;

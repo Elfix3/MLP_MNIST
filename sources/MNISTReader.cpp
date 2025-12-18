@@ -157,6 +157,24 @@ Matrix MNISTReader::Y_bach(size_t batch_start, size_t batch_size){
 
 }
 
+Matrix MNISTReader::X_bach(const std::vector<size_t> index){                                //index.size() is the batch size
+    Matrix X(index.size(),n_rows*n_cols);                                                   // X is a (batch_size × 784) matrix: one flattened MNIST image per row.
+    for(size_t i =0 ; i<index.size(); i++){                                                 // Row i corresponds to one image located at index[i]
+        for(size_t j = 0; j<n_rows*n_cols;j++){
+            X(i,j) = static_cast<double>(*(getImage(index[i],false)+j));                    //since we create batch from training images, we pass true parameter to getImage()
+        }
+    }
+    return X;
+}
+
+Matrix MNISTReader::Y_bach(const std::vector<size_t> index){                                 //index.size() is the batch size
+    Matrix Y(index.size(), 10);                                                              //Y is a (batch_size × 10) matrix: giving one hot vector for correct output
+    for (size_t i = 0; i < index.size(); i++) {
+        uint8_t label = *getLabel(index[i],false);                                          //since we create batch from training images, we pass true parameter to getLabel()
+        Y(i, label) = 1.0;
+    }
+    return Y;
+}
 
 void MNISTReader::plot_mnist_direct(size_t imageIndex, bool fromTest) {                     //true if from test set, false if comes from training set
     const std::pair<uint8_t*,uint8_t*> &set = fromTest ? testSet : trainSet;                //selects the test or training set depending on fromTest
