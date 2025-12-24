@@ -26,8 +26,8 @@ class NnManager{
 
 
         void train(size_t index);                      //trains a network by its index 
-        void compute_accuracy_global(size_t index);
-        void compute_accuracy(size_t index);
+        void compute_accuracy_global(const uint32_t& id);
+        void compute_accuracy(const uint32_t& id);
 
         bool pushNn(NeuralNetwork *n);                  //true for successful push, false for unsuccessful
         bool deleteNn(const uint32_t &id); 

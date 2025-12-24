@@ -53,7 +53,13 @@ void NnManager::train(size_t index){
     
 }
 
-void NnManager::compute_accuracy_global(size_t index){
+void NnManager::compute_accuracy_global(const uint32_t &id){
+    if(existingIds.find(id) == existingIds.end()){
+        std::cerr<<"Error, id not found in the network manager"<<std::endl;
+        return;
+    }
+    
+    size_t index = existingIds[id];
     size_t n_tests = 10000;
     size_t n_success = 0;
     for(size_t i = 0; i<n_tests;i++){
@@ -65,7 +71,14 @@ void NnManager::compute_accuracy_global(size_t index){
     std::cout<<"Accuracy of the network : "<<accuracy<<std::endl;
 }
 
-void NnManager::compute_accuracy(size_t index){
+void NnManager::compute_accuracy(const uint32_t &id){
+    if(existingIds.find(id) == existingIds.end()){
+        std::cerr<<"Error, id not found in the network manager"<<std::endl;
+        return;
+    }
+    
+    size_t index = existingIds[id];
+    
     std::vector<size_t> occurrences_real(10,0);
     std::vector<size_t> occurrences_found(10,0);
     for(size_t i = 0; i<dataReader->get_num_images_Test();i++){

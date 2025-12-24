@@ -32,7 +32,7 @@ bool MenuNode::hasChildren(){
 MenuNavigator::MenuNavigator(){
     
     manager = new NnManager();
-    NeuralNetwork *n1 = new NeuralNetwork(12);
+    NeuralNetwork *n1 = new NeuralNetwork(32);
     manager->pushNn(n1);
 
     NeuralNetwork *n2 = new NeuralNetwork(52);
@@ -167,6 +167,8 @@ void MenuNavigator::trainNetwork(uint32_t nwId)
 }
 
 void MenuNavigator::evaluateNetwork(uint32_t nwId){
+    //should plot a nice graph :), now we keep cmd
+    manager->compute_accuracy(nwId);
     
 }
 
@@ -180,10 +182,7 @@ void MenuNavigator::saveNetwork(uint32_t nwId){
 }
 
 void MenuNavigator::deleteNetwork(uint32_t nwId){
-    std::cout<<"am called"<<std::endl;
-    manager->showNetWorks();
     manager->deleteNn(nwId);
-    manager->showNetWorks();
     this->backToMainMenu();
 }
 
