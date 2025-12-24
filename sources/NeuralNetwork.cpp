@@ -1,8 +1,8 @@
 #include "NeuralNetwork.h"
 
 NeuralNetwork::NeuralNetwork(){}
-
-NeuralNetwork::NeuralNetwork(size_t n_first_input, const std::vector<std::pair<size_t, ActivationType>> &v)
+NeuralNetwork::NeuralNetwork(uint32_t nwId) : id(nwId), layers(nullptr), n_layers(0){}
+NeuralNetwork::NeuralNetwork(const uint32_t &nwId, const size_t &n_first_input, const std::vector<std::pair<size_t, ActivationType>> &v) : id(nwId), inputSize(n_first_input) , isTrained(false)
 {
     if(v.size()<2){
         throw std::invalid_argument("Please add at least 2 layers");
@@ -21,7 +21,6 @@ NeuralNetwork::NeuralNetwork(size_t n_first_input, const std::vector<std::pair<s
 
 NeuralNetwork::NeuralNetwork(const char *filename){
 
-
     std::ifstream file(std::string("saved_networks/")+filename, std::ios::binary);
     if(!file){
         throw std::runtime_error("Error : impossible to open file");
@@ -35,12 +34,13 @@ NeuralNetwork::NeuralNetwork(const char *filename){
     file.read(reinterpret_cast<char*>(&nnId), sizeof(nnId));
     file.read(reinterpret_cast<char*>(&nnlayers), sizeof(nnlayers));
     file.read(reinterpret_cast<char*>(&nnInputSize), sizeof(nnInputSize));
-    assert(magicNumber == 0x4E4E3031 && "Magic number checkup failed");
+    assert((magicNumber == 0x4E4E3031 || magicNumber == 0x4E4E3300) && "Magic number checkup failed");         //0x4E4E3301 for trained network, 0x4E4E3300 for untrained network
     
 
     id = static_cast<uint32_t>(nnId);                          //already uint32_t
     n_layers = static_cast<size_t>(nnlayers);
     inputSize = static_cast<size_t>(nnInputSize);
+    isTrained = static_cast<bool>(magicNumber&0x1);
     layers = new Layer*[n_layers];                             // allocates layers
 
     for(size_t i = 0; i<n_layers;i++){
@@ -64,7 +64,9 @@ NeuralNetwork::NeuralNetwork(const char *filename){
 
 
 NeuralNetwork::~NeuralNetwork(){
+    
     for(size_t i = 0; i< n_layers; i ++){
+        
         delete layers[i];
     }
     delete []layers;
@@ -76,7 +78,7 @@ Matrix NeuralNetwork::forward(const Matrix input) const{
         out = layers[i]->forward(out);              //newt input becomes the new computated output of the previous layer
         
     }
-    Y = out;                                        //We store final output as the Y prediction
+    //Y = out;                                        //We store final output as the Y prediction
     return out;
 }
 
@@ -124,6 +126,36 @@ const Layer *NeuralNetwork::getLayer(size_t index) const{               //return
     return layers[index];
 }
 
+const uint32_t NeuralNetwork::getId() const{
+    return id;
+}
+
+const bool NeuralNetwork::getIsTrained() const{
+    return isTrained;
+}
+
+
+
+void NeuralNetwork::markAsTrained(const TrainingConfig &conf){
+    isTrained = true;
+    lastTrainingConf = conf;
+}
+
+void NeuralNetwork::infos(){
+    std::cout<<"=== ID : "<<id<<"==="<<std::endl;
+    
+    if(!layers){
+        std::cerr<<"Error : no layer initalized in the selected network"<<std::endl;
+    } else{
+        for(size_t i = 0; i<n_layers;i++){
+            std::cout<<"Layer "<<i+1<<" : "<<getLayer(i)->getW().rows()<<" -> "<<
+            getLayer(i)->getW().cols()<<(getLayer(i)->getType()==RELU ? "\t\tRELU" : "\t\tSOFTMAX")<<std::endl;
+        }
+    }
+    
+    std::cout<<(isTrained?"Already trained":"Never trained")<<std::endl;
+}
+
 void NeuralNetwork::save(const char* filename){ //path needed
     //opening of the file
     std::ofstream file(std::string("saved_networks/")+filename, std::ios::binary);
@@ -132,7 +164,7 @@ void NeuralNetwork::save(const char* filename){ //path needed
         return;
     }
     //network header construction
-    uint32_t magicNumber = 0x4E4E3031;
+    uint32_t magicNumber = 0x4E4E3030 | isTrained;
     uint32_t n_layers_32 = static_cast<uint32_t>(n_layers);
     uint32_t inputSize_32 = static_cast<uint32_t>(inputSize);
     file.write(reinterpret_cast<const char*>(&magicNumber), sizeof(magicNumber));                   //magic number in char N N 0 1
@@ -164,11 +196,11 @@ void NeuralNetwork::save(const char* filename){ //path needed
     file.close();
 }
 
-void NeuralNetwork::load(const char *filename){
+void NeuralNetwork::load(const char *filename){                                                                    //not used anymore, called from constructor
     std::cout<<"try";
 }
 
-uint32_t NeuralNetwork::bigToLittleEndian(uint32_t big){
+uint32_t NeuralNetwork::bigToLittleEndian(uint32_t big){                                                            //not used anymore
     return( (big&0xFF) << 24| (big&0xFF00) <<8| (big&0xFF0000)>>8 | (big&0xFF000000)>>24);
 }
  //structure of header is :

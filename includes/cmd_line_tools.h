@@ -3,8 +3,9 @@
 
 #include <iostream>
 
-void secureIntInputCheck(int &user_input); //makes sure the user wont pass non integer values
+bool secureIntInputCheck(int &user_input, size_t max_range); //makes sure the user wont pass non integer values
 
+//bool secureIntInputCheck(int &user_input, size_t max_range);
 
 void bannerMessage(const char* msg); // prints some importants messages in a banner
 void choiceMessage(const char** choices, size_t numChoices);

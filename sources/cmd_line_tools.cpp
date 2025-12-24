@@ -2,13 +2,23 @@
 
 
 
-void secureIntInputCheck(int &user_input){
+bool secureIntInputCheck(int &user_input,size_t max_range){
     if(!(std::cin>>user_input)){
         std::cin.clear();
         std::cin.ignore(10000,'\n');
         std::cout<<"Incorrect input, please enter a number"<<std::endl;
+        return false;
     }
+        
+    if(user_input < 1|| user_input>static_cast<int>(max_range)) {
+        std::cout << "Please enter a number between 1 and "<< max_range << "\n";
+        return false;
+    }
+    return true;
 }
+
+
+
 
 void bannerMessage(const char *msg){
     std::cout<<"\n###########################################################################################################"<<std::endl;

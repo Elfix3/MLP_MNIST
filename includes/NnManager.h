@@ -1,16 +1,12 @@
 #ifndef NNMANAGER_H
 #define NNMANAGER_H
 
+#include <unordered_set>  
+#include <unordered_map>
+
 #include "MNISTReader.h"
 #include "NeuralNetwork.h"
 
-struct TrainingConfig{
-    double learningRate = 0.02;
-    size_t epochs  = 10;
-    size_t batchSize = 64;
-    bool shuffle = true;
-    unsigned int seed = 323;
-};
 
 
 class NnManager{
@@ -21,7 +17,7 @@ class NnManager{
         size_t n_max_networks = 10;
 
         TrainingConfig *conf = nullptr;
-
+        std::unordered_map<uint32_t,size_t> existingIds;
     public:
         NnManager();
         ~NnManager();
@@ -29,13 +25,20 @@ class NnManager{
         bool init_dataReader();
 
 
-        void train(size_t index);                      //trains a network by its index
+        void train(size_t index);                      //trains a network by its index 
+        void compute_accuracy_global(size_t index);
         void compute_accuracy(size_t index);
 
-        void pushNn(NeuralNetwork *n);
+        bool pushNn(NeuralNetwork *n);                  //true for successful push, false for unsuccessful
         bool deleteNn(size_t index); 
 
+        
         //popNn(); 
+        size_t get_n_neural_networks() const;
+        NeuralNetwork** get_setofNetWorks() const;
+        NeuralNetwork * getNetworkFromId(const uint32_t id) const;
+
+        void showNetWorks() const;
 
 };
 

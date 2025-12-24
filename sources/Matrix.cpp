@@ -259,8 +259,6 @@ Matrix Matrix::operator*(const Matrix &other) const{ //this * other
            productMatrix.datas[indexRow*productMatrix.n_cols + indexCol]+= datas[indexRow*n_cols + j]*other.datas[j*other.n_cols + indexCol];
         }
     }
-
-
     return productMatrix;
 }
 
