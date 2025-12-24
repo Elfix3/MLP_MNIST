@@ -101,16 +101,25 @@ bool NnManager::pushNn(NeuralNetwork *n){
         n_max_networks = new_capacity;
     }
     existingIds[n->getId()] = n_neural_networks;
+    std::cout<<"pushing id : "<<n->getId() <<std::endl;
     setOfNetworks[n_neural_networks++] = n;
     return true;
 }
 
-bool NnManager::deleteNn(size_t index){
+bool NnManager::deleteNn(const uint32_t &id){
+    if(existingIds.find(id) == existingIds.end()){
+        std::cerr<<"Error, id not found in the network manager"<<std::endl;
+        return false;
+    }
+    
+    size_t index = existingIds[id];
+    
+
     if (index >= n_neural_networks) {
         return false; 
     }
     if(setOfNetworks[index]){
-        std::cout<<index;
+        std::cout<<index<<std::endl;
         delete setOfNetworks[index];
         for(size_t i = index;i<n_neural_networks-1; i++){
             setOfNetworks[i] = setOfNetworks[i+1];
@@ -118,9 +127,25 @@ bool NnManager::deleteNn(size_t index){
 
         setOfNetworks[n_neural_networks-1] = nullptr;
         n_neural_networks--;
+        existingIds.erase(id);
+
+        for (auto mapIt = existingIds.begin(); mapIt != existingIds.end(); ++mapIt) {
+            if (mapIt->second > index) {
+                --mapIt->second;
+            }
+        }
+
         return true;
     }
+    std::cout<<"unsucessfull delete"<<std::endl;
     return false;
+}
+
+void NnManager::showExistingIds(){
+    for (const auto& pair : existingIds) {
+        std::cout << "id = " << pair.first
+                  << ", index = " << pair.second << '\n';
+    }
 }
 
 size_t NnManager::get_n_neural_networks() const{
@@ -149,6 +174,7 @@ void NnManager::showNetWorks() const{                       //todelete
     for(size_t i = 0; i<n_neural_networks;i++){
         std::cout<<setOfNetworks[i]->getId()<<std::endl;
     }
+    std::cout<<"\n\n";
 }
 
 bool NnManager::init_dataReader(){

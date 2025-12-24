@@ -19,7 +19,7 @@ NeuralNetwork::NeuralNetwork(const uint32_t &nwId, const size_t &n_first_input, 
     }
 }
 
-NeuralNetwork::NeuralNetwork(const char *filename){
+NeuralNetwork::NeuralNetwork(const char *filename){                                     //here we should get rid of asserts, and just make sure the 
 
     std::ifstream file(std::string("saved_networks/")+filename, std::ios::binary);
     if(!file){
@@ -34,7 +34,7 @@ NeuralNetwork::NeuralNetwork(const char *filename){
     file.read(reinterpret_cast<char*>(&nnId), sizeof(nnId));
     file.read(reinterpret_cast<char*>(&nnlayers), sizeof(nnlayers));
     file.read(reinterpret_cast<char*>(&nnInputSize), sizeof(nnInputSize));
-    assert((magicNumber == 0x4E4E3031 || magicNumber == 0x4E4E3300) && "Magic number checkup failed");         //0x4E4E3301 for trained network, 0x4E4E3300 for untrained network
+    assert((magicNumber == 0x4E4E3031 || magicNumber == 0x4E4E3030) && "Magic number checkup failed");         //0x4E4E3301 for trained network, 0x4E4E3300 for untrained network
     
 
     id = static_cast<uint32_t>(nnId);                          //already uint32_t

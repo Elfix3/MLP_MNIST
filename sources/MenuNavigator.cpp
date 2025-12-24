@@ -32,12 +32,14 @@ bool MenuNode::hasChildren(){
 MenuNavigator::MenuNavigator(){
     
     manager = new NnManager();
-    NeuralNetwork *n1 = new NeuralNetwork(22);
-    NeuralNetwork *n2 = new NeuralNetwork(18);
-    NeuralNetwork *n3 = new NeuralNetwork(43);
+    NeuralNetwork *n1 = new NeuralNetwork(12);
     manager->pushNn(n1);
+
+    NeuralNetwork *n2 = new NeuralNetwork(52);
     manager->pushNn(n2);
-    manager->pushNn(n3);
+
+    /* NeuralNetwork *n3 = new NeuralNetwork(62);
+    manager->pushNn(n3); */
 
     rootMenu = new MenuNode({"MLP training program",nullptr});
     
@@ -168,8 +170,21 @@ void MenuNavigator::evaluateNetwork(uint32_t nwId){
     
 }
 
-void MenuNavigator::saveNetwork(uint32_t nwId)
-{
+void MenuNavigator::saveNetwork(uint32_t nwId){
+    std::string fileName;
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    std::cout<<"Please type desired file name : ";
+    getline(std::cin, fileName);
+
+    manager->getNetworkFromId(nwId)->save(fileName.c_str());
+}
+
+void MenuNavigator::deleteNetwork(uint32_t nwId){
+    std::cout<<"am called"<<std::endl;
+    manager->showNetWorks();
+    manager->deleteNn(nwId);
+    manager->showNetWorks();
+    this->backToMainMenu();
 }
 
 void MenuNavigator::fetchSavedNetworkFiles(MenuNode *node){
@@ -207,11 +222,17 @@ void MenuNavigator::fetchNetworkList(MenuNode *node){
             {"Info", [this,nnId](){showInfo(nnId);}},
             {"Train", [this,nnId](){trainNetwork(nnId);}},
             {"Evaluate",[this,nnId](){evaluateNetwork(nnId);}},
-            {"Save",[this,nnId](){saveNetwork(nnId);}}
-            
+            {"Save",[this,nnId](){saveNetwork(nnId);}},
+            {"Delete",nullptr}
+        };
+
+        MenuList yesNoConfirmation = {
+            {"Yes", [this,nnId](){deleteNetwork(nnId);}},
+            {"No",  nullptr}
         };
         MenuNode* nwNode = new MenuNode({"Network : "+std::to_string(nnId),nullptr});
         nwNode->addChildren(staticOptions,[this](){this->back();});
+        nwNode->options[4]->addChildren(yesNoConfirmation,[this](){this->back();});
         node->options.push_back(nwNode);
     }
     node->options.push_back(new MenuNode({"Back",[this](){this->back();}}));

@@ -30,9 +30,9 @@ class NnManager{
         void compute_accuracy(size_t index);
 
         bool pushNn(NeuralNetwork *n);                  //true for successful push, false for unsuccessful
-        bool deleteNn(size_t index); 
+        bool deleteNn(const uint32_t &id); 
 
-        
+        void showExistingIds();                         //helper function to delete
         //popNn(); 
         size_t get_n_neural_networks() const;
         NeuralNetwork** get_setofNetWorks() const;

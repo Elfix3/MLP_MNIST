@@ -42,10 +42,7 @@ int main(){
     /* manager.train(0);
     manager.compute_accuracy(0);
     manager.compute_accuracy_global(0); */
-    
 
-    NeuralNetwork *n = new NeuralNetwork("trained network");
-    n->infos();
     MenuNavigator *nav= new MenuNavigator();
     nav->run();
     

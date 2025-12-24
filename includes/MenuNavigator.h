@@ -59,11 +59,12 @@ class MenuNavigator{
         void importNetwork(const std::string &path);
 
 
+        //options on network
         void showInfo(uint32_t nwId);
         void trainNetwork(uint32_t nwId);
         void evaluateNetwork(uint32_t nwId);
         void saveNetwork(uint32_t nwId);
-       
+        void deleteNetwork(uint32_t nwId);
 
 
        
