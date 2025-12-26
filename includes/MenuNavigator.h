@@ -13,30 +13,29 @@
 
 struct MenuNode;
 
-//helper alias to INITALISE MenuNode, note that's it's only to initalize
-using MenuEntry = std::pair<std::string, std::function<void()>>;                 //maps a string, option name, to an action to do
-using MenuList  = std::vector<MenuEntry>;                                                       //list of entry this mapping
+//un peu brouillon
+using Action = std::function<void()>;
+using Fetch = std::function<void(MenuNode*)>;
 
+using MenuList = std::vector<MenuNode*>;
 
-/*  using MenuEntry = std::tuple<std::string, std::function<void()>, std::function<void(MenuNode *parent)>>;
- using MenuList  = std::vector<MenuEntry>; 
- */
 struct MenuNode{
     std::string title;
-    std::function<void()> action;                                                               //action to do
-    std::function<void(MenuNode*)> fetchChildren;                                               //fetch method, use for dynamic node fetch
+    Action action;                                                               //action to do
+    Fetch fetchChildren;                                                         //fetch method, use for dynamic node fetch
    
-    bool fetchNeeded = false;                                                                   //flag to decide if we need to fetch, assumed false per default
-    std::vector<MenuNode*> options;                                                             //options or children Nodes
+    bool fetchNeeded = false;               //still needed ?                                                    //flag to decide if we need to fetch, assumed false per default
+    std::vector<MenuNode*> options;                                              //options or children Nodes
     
 
-    MenuNode(const MenuEntry m);                                                                //constructor
+    MenuNode() = default;
+    MenuNode(std::string title,Action actionFn);
+    MenuNode(std::string title, Action actionFn, Fetch fetchFn);                                                              //constructor
     ~MenuNode();                                                                                //destructor
-    
-    void setFetchChildren(std::function<void(MenuNode *parent)> fetchMethod);                   //specifies a fetch method to indicate we should fetch children
+
     bool hasChildren();
 
-    void addChildren(const MenuList &children, std::function<void()> backAction);               //children adder
+    void addChildren(MenuList children, Action backAction);               //children adder
     void clearChildren();                                                                       //clears all children, for dynamic menu
 };
 class MenuNavigator{
@@ -55,31 +54,39 @@ class MenuNavigator{
         void backToMainMenu();                                                               //returns to the root menu
         void terminate();                                                                    //ends the program
 
-        void createNeuralNetwork();
-        void importNetwork(const std::string &path);
+        
+        
+        void createNeuralNetwork();                                 //not implemented again
+        void importNetwork(const std::string &path);                //need to test post refacto, major issue on invalid file, assert on magic number check
 
 
-        //options on network
-        void showInfo(uint32_t nwId);
-        void trainNetwork(uint32_t nwId);
-        void evaluateNetwork(uint32_t nwId);
-        void saveNetwork(uint32_t nwId);
-        void deleteNetwork(uint32_t nwId);
+
+        //======= Network direct Actions =======//
+        void showInfo(uint32_t nwId);                              //tested ok
+        void trainNetwork(uint32_t nwId);                          //not implemented at all
+        void evaluateNetwork(uint32_t nwId);                       //somehow works, but only cmd
+        void saveNetwork(uint32_t nwId);                           //suspicious
+        void deleteNetwork(MenuNode* node, uint32_t nwId);         //seems to work      
 
 
        
-        //FETCH METHODS, FOR DYNAMIC NODES
+        //======= Dynamic fetching for MenuNodes =======//
         void fetchNetworkList(MenuNode *node);
         void fetchSavedNetworkFiles(MenuNode *node);
+        void fetchConfOptions(MenuNode *node);
 
+
+    
+        /* void sillyDestructiveStuff(); */
         
         
-        void unimplemented();
-        void sillyDestructiveStuff();
         
+        //======= Running flow =======//
         void run();                                                                          //runs the stack menu
         void displayMenu();                                                                  //displays the top of menuStack = the current menu
+        void unimplemented();
 
-        bool init_nn_manager();
 };
-#endif
+#endif //
+
+

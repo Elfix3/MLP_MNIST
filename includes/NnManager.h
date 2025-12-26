@@ -16,28 +16,26 @@ class NnManager{
         size_t n_neural_networks;
         size_t n_max_networks = 10;
 
-        TrainingConfig *conf = nullptr;
+        TrainingConfig conf;
         std::unordered_map<uint32_t,size_t> existingIds;
     public:
         NnManager();
         ~NnManager();
 
-        bool init_dataReader();
+        void train(size_t index);                                       //trains a network by its index, with the setupTrainingConfig
+        void compute_accuracy_global(const uint32_t& id);               //computes accuracy on all tests examples, final ratio
+        void compute_accuracy(const uint32_t& id);                      //computes accuracy by digits, one ratio per digit
 
+        bool pushNn(NeuralNetwork *n);                                  //true for successful push, false for unsuccessful
+        bool deleteNn(const uint32_t &id);                              //true for successful delete, false for unsuccessful
 
-        void train(size_t index);                      //trains a network by its index 
-        void compute_accuracy_global(const uint32_t& id);
-        void compute_accuracy(const uint32_t& id);
+        void showExistingIds();                                         //helper function to delete
 
-        bool pushNn(NeuralNetwork *n);                  //true for successful push, false for unsuccessful
-        bool deleteNn(const uint32_t &id); 
-
-        void showExistingIds();                         //helper function to delete
-        //popNn(); 
         size_t get_n_neural_networks() const;
-        NeuralNetwork** get_setofNetWorks() const;
+        NeuralNetwork** get_setofNetWorks() const;                              //pretty much useless
         NeuralNetwork * getNetworkFromId(const uint32_t id) const;
-
+        TrainingConfig getTrainingConf() const;
+        
         void showNetWorks() const;
 
 };

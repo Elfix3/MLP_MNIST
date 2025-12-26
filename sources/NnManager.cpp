@@ -1,6 +1,6 @@
 #include "NnManager.h"
 
-NnManager::NnManager() : n_neural_networks(0), n_max_networks(10), conf(new TrainingConfig()){
+NnManager::NnManager() : n_neural_networks(0), n_max_networks(10), conf(TrainingConfig()){
     dataReader = new MNISTReader();                 //should be built once
     setOfNetworks = new NeuralNetwork*[10]();       //directly allocates 10 neuralnetwork slots
 }
@@ -14,10 +14,7 @@ NnManager::~NnManager(){
 
 
 void NnManager::train(size_t index){
-    if(!conf){                                              //replace by is valid conf
-        std::cerr<<"No conf defined\n"<<std::endl;
-        return;
-    }
+   
     if(!setOfNetworks[index]){
         std::cerr<<"No network found at this index\n";
         return;
@@ -30,13 +27,13 @@ void NnManager::train(size_t index){
     std::vector<size_t> globalIndexes(train_size);                                                          //vector with numImages indexes
     std::iota(globalIndexes.begin(),globalIndexes.end(), 0);                                                //all index prepared from 0,1,2,... to    dataReader->get_num_images_Train()-1
     
-    for(size_t epoch = 0; epoch<conf->epochs; epoch++){
+    for(size_t epoch = 0; epoch<conf.epochs; epoch++){
         
-        shuffleIndexes(globalIndexes, conf->seed+epoch);                                                    //all indexes are now shuffled
+        shuffleIndexes(globalIndexes, conf.seed+epoch);                                                    //all indexes are now shuffled
         
-        for(size_t batch_start = 0; batch_start<train_size; batch_start+=conf->batchSize){
+        for(size_t batch_start = 0; batch_start<train_size; batch_start+=conf.batchSize){
             
-            size_t batch_end = std::min(batch_start + conf->batchSize, train_size);
+            size_t batch_end = std::min(batch_start + conf.batchSize, train_size);
             
             std::vector<size_t> batchIndex(globalIndexes.begin()+batch_start,globalIndexes.begin()+batch_end);
 
@@ -45,7 +42,7 @@ void NnManager::train(size_t index){
 
             Matrix A = setOfNetworks[index]->forward(X.Normalize(255));
             setOfNetworks[index]->backward(A-Y);
-            setOfNetworks[index]->update(conf->learningRate);
+            setOfNetworks[index]->update(conf.learningRate);
             std::cout<<setOfNetworks[index]->lossBatch(A,Y)<<std::endl;
         }
         std::cout<<"EPOCH MADE"<<std::endl;
@@ -114,7 +111,6 @@ bool NnManager::pushNn(NeuralNetwork *n){
         n_max_networks = new_capacity;
     }
     existingIds[n->getId()] = n_neural_networks;
-    std::cout<<"pushing id : "<<n->getId() <<std::endl;
     setOfNetworks[n_neural_networks++] = n;
     return true;
 }
@@ -165,7 +161,8 @@ size_t NnManager::get_n_neural_networks() const{
     return n_neural_networks;
 }
 
-NeuralNetwork **NnManager::get_setofNetWorks() const{
+NeuralNetwork **NnManager::get_setofNetWorks() const
+{
     if(!setOfNetworks){
         std::cerr<<"No set of network initalized"<<std::endl;
         return nullptr;
@@ -183,6 +180,10 @@ NeuralNetwork *NnManager::getNetworkFromId(const uint32_t id) const{
     return setOfNetworks[it->second];
 }
 
+TrainingConfig NnManager::getTrainingConf() const {
+    return conf;                                            //returns the GLOBAL training conf, which will be used on all trainings
+}
+
 void NnManager::showNetWorks() const{                       //todelete
     for(size_t i = 0; i<n_neural_networks;i++){
         std::cout<<setOfNetworks[i]->getId()<<std::endl;
@@ -190,11 +191,7 @@ void NnManager::showNetWorks() const{                       //todelete
     std::cout<<"\n\n";
 }
 
-bool NnManager::init_dataReader(){
-    dataReader = new MNISTReader();
-    return (!dataReader ? false : true);
-    
-}
+
 
 void shuffleIndexes(std::vector<size_t> &v, const unsigned int seed){
     std::mt19937 rng(seed);

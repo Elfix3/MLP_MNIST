@@ -64,7 +64,6 @@ NeuralNetwork::NeuralNetwork(const char *filename){                             
 
 
 NeuralNetwork::~NeuralNetwork(){
-    
     for(size_t i = 0; i< n_layers; i ++){
         
         delete layers[i];
@@ -135,14 +134,13 @@ const bool NeuralNetwork::getIsTrained() const{
 }
 
 
-
 void NeuralNetwork::markAsTrained(const TrainingConfig &conf){
     isTrained = true;
     lastTrainingConf = conf;
 }
 
 void NeuralNetwork::infos(){
-    std::cout<<"=== ID : "<<id<<"==="<<std::endl;
+    std::cout<<"=== ID : "<<id<<" ==="<<std::endl;
     
     if(!layers){
         std::cerr<<"Error : no layer initalized in the selected network"<<std::endl;
