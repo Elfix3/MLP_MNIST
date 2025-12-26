@@ -13,55 +13,48 @@
 
 struct MenuNode;
 
-//un peu brouillon
-using Action = std::function<void()>;
-using Fetch = std::function<void(MenuNode*)>;
+using Action = std::function<void()>;                                                   //generic action function
+using Fetch = std::function<void(MenuNode*)>;                                           //generic fetch function
 
-using MenuList = std::vector<MenuNode*>;
+using MenuList = std::vector<MenuNode*>;                                                //used to add a list of children
 
 struct MenuNode{
     std::string title;
-    Action action;                                                               //action to do
-    Fetch fetchChildren;                                                         //fetch method, use for dynamic node fetch
+    Action action;                                                                      //action to do
+    Fetch fetchChildren;                                                                //fetch method, use for dynamic node fetch
    
-    bool fetchNeeded = false;               //still needed ?                                                    //flag to decide if we need to fetch, assumed false per default
-    std::vector<MenuNode*> options;                                              //options or children Nodes
+    bool fetchNeeded = false;                                                           //flag to decide if we need to fetch, assumed false per default, still needed ?
+    std::vector<MenuNode*> options;                                                     //options or children Nodes
     
 
+    // =========================
+    // MENU NODES FUNCTIONS
+    // =========================
     MenuNode() = default;
-    MenuNode(std::string title,Action actionFn);
-    MenuNode(std::string title, Action actionFn, Fetch fetchFn);                                                              //constructor
-    ~MenuNode();                                                                                //destructor
-
+    MenuNode(std::string title,Action actionFn);                                        //constructor no fetch
+    MenuNode(std::string title, Action actionFn, Fetch fetchFn);                        //constructor with fetch
+    ~MenuNode();                                                                        //destructor
+    
     bool hasChildren();
-
-    void addChildren(MenuList children, Action backAction);               //children adder
-    void clearChildren();                                                                       //clears all children, for dynamic menu
+    void addChildren(MenuList children, Action backAction);                             //children adder
+    void clearChildren();                                                               //clears all children, for dynamic menu
 };
+
+
 class MenuNavigator{
     private :
-        MenuNode *rootMenu;                                                                     //first menu
-        std::stack<MenuNode*> menuStack;                                                        //menuStack.top() is the current Menu
-        NnManager *manager;
+        MenuNode *rootMenu;                                                             //rootMenu, has to be delete -> recursive delete of all children
+        std::stack<MenuNode*> menuStack;                                                //menuStack.top() is the current Menu
+        NnManager *manager;                                                             // manager
 
     public :
         MenuNavigator();
         ~MenuNavigator() = default;
         
         
-        //action functions :
-        void back();                                                                         //pops the stack, should be passed to back action of the add children of the node
-        void backToMainMenu();                                                               //returns to the root menu
-        void terminate();                                                                    //ends the program
-
-        
-        
-        void createNeuralNetwork();                                 //not implemented again
-        void importNetwork(const std::string &path);                //need to test post refacto, major issue on invalid file, assert on magic number check
-
-
-
-        //======= Network direct Actions =======//
+        // =========================
+        // NETWORK DIRECT ACTION
+        // =========================
         void showInfo(uint32_t nwId);                              //tested ok
         void trainNetwork(uint32_t nwId);                          //not implemented at all
         void evaluateNetwork(uint32_t nwId);                       //somehow works, but only cmd
@@ -69,22 +62,30 @@ class MenuNavigator{
         void deleteNetwork(MenuNode* node, uint32_t nwId);         //seems to work      
 
 
-       
-        //======= Dynamic fetching for MenuNodes =======//
-        void fetchNetworkList(MenuNode *node);
-        void fetchSavedNetworkFiles(MenuNode *node);
-        void fetchConfOptions(MenuNode *node);
+        // =========================
+        // DYNAMIC FETCH OF THE NODE
+        // =========================
+        void fetchNetworkList(MenuNode *node);                      //add network nodes to the target MenuNode
+        void fetchSavedNetworkFiles(MenuNode *node);                //add files nodes to the target MenuNode
+        void fetchConfOptions(MenuNode *node);                      //add parameters node to the target MenuNode
 
 
-    
-        /* void sillyDestructiveStuff(); */
+        // =========================
+        // SPECIAL ACTION
+        // =========================
+        void createNeuralNetwork();                                 //not implemented again
+        void importNetwork(const std::string &path);                //need to test post refacto, major issue on invalid file, assert on magic number check//try to move this in the fetchSavedNwfiles ?
+
         
-        
-        
-        //======= Running flow =======//
-        void run();                                                                          //runs the stack menu
-        void displayMenu();                                                                  //displays the top of menuStack = the current menu
-        void unimplemented();
+        // =========================
+        // RUNNING FLOW
+        // =========================
+        void run();                                                 //runs the stack menu
+        void displayMenu();                                         //displays the top of menuStack = the current menu
+        void back();                                                //pops the stack, should be passed to back action of the add children of the node
+        void backToMainMenu();                                      //returns to the root menu
+        void terminate();                                           //ends the program
+        void unimplemented();                                       //unimplemented util function
 
 };
 #endif //

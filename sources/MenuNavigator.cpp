@@ -1,23 +1,16 @@
 #include "MenuNavigator.h"
 
 
-
+// =========================
+// MENU NODES FUNCTIONS
+// =========================
 MenuNode::MenuNode(std::string title, Action actionFn) : title(title),
 action(std::move(actionFn)), fetchNeeded(false) {}                                          //constructor for no fetch needed
 
 MenuNode::MenuNode(std::string title, Action actionFn, Fetch fetchFn) : title(title),
 action(std::move(actionFn)), fetchChildren(fetchFn), fetchNeeded(true) {}                   //constructor for fetch needed
 
-MenuNode::~MenuNode(){
-    clearChildren();
-}
-
-/* void MenuNode::addChildren(const MenuList &children, std::function<void()> backAction){
-    for(const MenuEntry &m : children){                             //we loop a menu entry over the menu list
-        //options.push_back(new MenuNode(m));
-    }
-    options.push_back(new MenuNode({"Back",[backAction](){backAction();}}));           //adds back button to each MenuNode
-} */
+MenuNode::~MenuNode(){ clearChildren();}
 
 void MenuNode::addChildren(MenuList children, Action backAction){
     clearChildren();
@@ -36,8 +29,12 @@ bool MenuNode::hasChildren(){
     return options.size()>0;
 }
 
+
+
+
 MenuNavigator::MenuNavigator(){
     
+
     manager = new NnManager();
     NeuralNetwork *n1 = new NeuralNetwork(32);
     manager->pushNn(n1);
@@ -50,63 +47,20 @@ MenuNavigator::MenuNavigator(){
 
     rootMenu = new MenuNode({"MLP training program",nullptr});
     
-    //auto myLambda = [this](){ this->unimplemented(); };         //for easy passing an unimplemented method
+    Action unimplemented = [this]() {this->unimplemented();};   //for easy passing an unimplemented method
     Action backAction = [this](){back();};
     Action terminateAction = [this](){terminate();};
-    
 
     //Fetch fetchNetworks = [this](MenuNode *node){fetchNetworkList(node);};
     MenuList rootMenuOptions = {
-        new MenuNode("Create network",nullptr),
+        new MenuNode("Create network",unimplemented),
         new MenuNode("Import network",nullptr,[this](MenuNode *node){this->fetchSavedNetworkFiles(node);}),
         new MenuNode("Training config",nullptr, [this](MenuNode *node){this->fetchConfOptions(node);}),
-        new MenuNode("Compare", nullptr),
+        new MenuNode("Compare", unimplemented),
         new MenuNode("Network list",nullptr,[this](MenuNode *node){this->fetchNetworkList(node);}),
     };
     rootMenu->addChildren(rootMenuOptions,terminateAction);
-
-    /* MenuList optionsImportExport = {
-        {"Import",myLambda},
-        {"Export",myLambda},
-    };
-     */
-    /* rootMenu->addChildren(menuOptions,[this](){this->terminate();});
-    
-    MenuNode* nwListNode = rootMenu->options[3];
-    nwListNode->setFetchChildren([this](MenuNode *nwListNode){this->fetchNetworkList(nwListNode);});
-
-    MenuNode* importListNode = rootMenu->options[1];
-    importListNode->setFetchChildren([this](MenuNode *importListNode){this->fetchSavedNetworkFiles(importListNode);});
-
-    MenuNode* trainingConfNode = rootMenu->options[2];
-    trainingConfNode->setFetchChildren([this](MenuNode *trainingConfNode){this->fetchConfOptions(trainingConfNode);}); */
-    
     menuStack.push(rootMenu);
-}
-
-
-
-
-void MenuNavigator::back(){
-    if(menuStack.top() != rootMenu){            //accept pop only if it's not the main menu
-        menuStack.pop();
-    }
-    else {
-        std::cout<<"Already main root\n";
-    }
-}
-
-void MenuNavigator::backToMainMenu(){
-    while(!menuStack.empty()) {
-        menuStack.pop();
-    }
-    menuStack.push(rootMenu);
-}
-
-void MenuNavigator::terminate(){
-    while(!menuStack.empty()){
-        menuStack.pop();
-    }
 }
 
 void MenuNavigator::createNeuralNetwork(){
@@ -145,8 +99,6 @@ void MenuNavigator::createNeuralNetwork(){
     NeuralNetwork *createdNeuralNw = new NeuralNetwork(static_cast<uint32_t>(id), 784, architecture); //784 because of 28*28 image
     createdNeuralNw->infos();
     manager->pushNn(createdNeuralNw);
-
-    //push
 }
 
 void MenuNavigator::importNetwork(const std::string &path){
@@ -158,6 +110,10 @@ void MenuNavigator::importNetwork(const std::string &path){
         std::cout<<"Error during push, file not imported"<<std::endl;
     }
 }
+
+// =========================
+// ACTION FUNCTIONS
+// =========================
 
 void MenuNavigator::showInfo(uint32_t nwId){
     manager->getNetworkFromId(nwId)->infos();
@@ -199,17 +155,11 @@ void MenuNavigator::deleteNetwork(MenuNode *node, uint32_t nwId){
     node->addChildren(yesNoChoice,[this](){this->back();});
 }
 
-void MenuNavigator::displayMenu(){
-    if(menuStack.top()){
-        std::cout<<"\n===="<<menuStack.top()->title<<"====\n";
-        for(size_t i = 0; i<menuStack.top()->options.size();i++){
-            std::cout<<i+1<<". "<<menuStack.top()->options[i]->title<<"\n";
-        }
-    }
-    else {
-        std::cerr<<"Error : Menu not found\n";
-    }
-}
+
+
+// =========================
+// DYNAMIC FETCH OF THE NODE
+// =========================
 
 void MenuNavigator::fetchNetworkList(MenuNode *node){                               //fetch the list of networks, and gives to each networks all desired options
     if(!manager){
@@ -282,12 +232,11 @@ void MenuNavigator::fetchConfOptions(MenuNode *node){
     node->addChildren(confList,[this](){this->back();});
 }
 
-void MenuNavigator::unimplemented(){
-    std::cout<<"unimplemented, coming soon"<<std::endl;
-}
 
-void MenuNavigator::run()
-{
+// =========================
+// RUNNING FLOW
+// =========================
+void MenuNavigator::run(){
     int userInput = -1;
     while(!menuStack.empty()){
         displayMenu();
@@ -306,6 +255,40 @@ void MenuNavigator::run()
     }
 }
 
+void MenuNavigator::displayMenu(){
+    if(menuStack.top()){
+        std::cout<<"\n===="<<menuStack.top()->title<<"====\n";
+        for(size_t i = 0; i<menuStack.top()->options.size();i++){
+            std::cout<<i+1<<". "<<menuStack.top()->options[i]->title<<"\n";
+        }
+    }
+    else {
+        std::cerr<<"Error : Menu not found\n";
+    }
+}
 
+void MenuNavigator::back(){
+    if(menuStack.top() != rootMenu){            //accept pop only if it's not the main menu
+        menuStack.pop();
+    }
+    else {
+        std::cout<<"Already main root\n";
+    }
+}
 
+void MenuNavigator::backToMainMenu(){
+    while(!menuStack.empty()) {
+        menuStack.pop();
+    }
+    menuStack.push(rootMenu);
+}
 
+void MenuNavigator::terminate(){
+    while(!menuStack.empty()){
+        menuStack.pop();
+    }
+}
+
+void MenuNavigator::unimplemented(){
+    std::cout<<"unimplemented, coming soon"<<std::endl;
+}
