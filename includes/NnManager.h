@@ -22,7 +22,7 @@ class NnManager{
         NnManager();
         ~NnManager();
 
-        void train(size_t index);                                       //trains a network by its index, with the setupTrainingConfig
+        void train(const uint32_t& id);                                 //trains a network by its id with the setupTrainingConfig
         void compute_accuracy_global(const uint32_t& id);               //computes accuracy on all tests examples, final ratio
         void compute_accuracy(const uint32_t& id);                      //computes accuracy by digits, one ratio per digit
 
@@ -36,6 +36,8 @@ class NnManager{
         NeuralNetwork * getNetworkFromId(const uint32_t id) const;
         TrainingConfig getTrainingConf() const;
         
+        void setTrainingConf(const TrainingConfig &newConf);
+
         void showNetWorks() const;
 
 };

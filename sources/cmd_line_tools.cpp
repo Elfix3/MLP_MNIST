@@ -20,6 +20,23 @@ bool secureIntInputCheck(int &user_input,size_t max_range){
 
 
 
+
+bool secureDoubleInputCheck(double &user_input,double min, double max){
+    if(!(std::cin>>user_input)){
+        std::cin.clear();
+        std::cin.ignore(10000,'\n');
+        std::cout<<"Incorrect input, please enter a number"<<std::endl;
+        return false;
+    }
+    if(user_input <= min|| user_input> max) {
+        std::cout << "Please enter a number between"<<min<<" and "<< max<< "\n";
+        return false;
+    }
+    return true;
+}
+
+
+
 void bannerMessage(const char *msg){
     std::cout<<"\n###########################################################################################################"<<std::endl;
     std::cout<<msg<<std::endl;

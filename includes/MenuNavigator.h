@@ -55,11 +55,12 @@ class MenuNavigator{
         // =========================
         // NETWORK DIRECT ACTION
         // =========================
-        void showInfo(uint32_t nwId);                              //tested ok
-        void trainNetwork(uint32_t nwId);                          //not implemented at all
-        void evaluateNetwork(uint32_t nwId);                       //somehow works, but only cmd
-        void saveNetwork(uint32_t nwId);                           //suspicious
-        void deleteNetwork(MenuNode* node, uint32_t nwId);         //seems to work      
+        void showInfo(const uint32_t &nwId);                              //tested ok
+        void trainNetwork(const uint32_t &nwId);                          //not implemented at all
+        void evaluateNetwork(const uint32_t &nwId);                       //somehow works, but only cmd
+        void evaluatePerDigit(const uint32_t &nwId);
+        void saveNetwork(const uint32_t &nwId);                           //suspicious
+        void deleteNetwork(MenuNode* node, const uint32_t &nwId);         //seems to work      
 
 
         // =========================
@@ -75,7 +76,7 @@ class MenuNavigator{
         // =========================
         void createNeuralNetwork();                                 //not implemented again
         void importNetwork(const std::string &path);                //need to test post refacto, major issue on invalid file, assert on magic number check//try to move this in the fetchSavedNwfiles ?
-
+        
         
         // =========================
         // RUNNING FLOW

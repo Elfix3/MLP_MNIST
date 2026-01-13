@@ -36,24 +36,21 @@ MenuNavigator::MenuNavigator(){
     
 
     manager = new NnManager();
-    NeuralNetwork *n1 = new NeuralNetwork(32);
-    manager->pushNn(n1);
-
-    NeuralNetwork *n2 = new NeuralNetwork(52);
+    /* NeuralNetwork *n2 = new NeuralNetwork(52);
     manager->pushNn(n2);
 
     NeuralNetwork *n3 = new NeuralNetwork(62);
-    manager->pushNn(n3);
+    manager->pushNn(n3); */
 
     rootMenu = new MenuNode({"MLP training program",nullptr});
     
     Action unimplemented = [this]() {this->unimplemented();};   //for easy passing an unimplemented method
     Action backAction = [this](){back();};
     Action terminateAction = [this](){terminate();};
-
+    Action createNnAction = [this](){createNeuralNetwork();};
     //Fetch fetchNetworks = [this](MenuNode *node){fetchNetworkList(node);};
     MenuList rootMenuOptions = {
-        new MenuNode("Create network",unimplemented),
+        new MenuNode("Create network",createNnAction),
         new MenuNode("Import network",nullptr,[this](MenuNode *node){this->fetchSavedNetworkFiles(node);}),
         new MenuNode("Training config",nullptr, [this](MenuNode *node){this->fetchConfOptions(node);}),
         new MenuNode("Compare", unimplemented),
@@ -115,19 +112,23 @@ void MenuNavigator::importNetwork(const std::string &path){
 // ACTION FUNCTIONS
 // =========================
 
-void MenuNavigator::showInfo(uint32_t nwId){
+void MenuNavigator::showInfo(const uint32_t &nwId){
     manager->getNetworkFromId(nwId)->infos();
 }
 
-void MenuNavigator::trainNetwork(uint32_t nwId){
-    //not yet implemented
+void MenuNavigator::trainNetwork(const uint32_t &nwId){
+    manager->train(nwId);
 }
 
-void MenuNavigator::evaluateNetwork(uint32_t nwId){
+void MenuNavigator::evaluateNetwork(const uint32_t &nwId){
     manager->compute_accuracy_global(nwId);
 }
 
-void MenuNavigator::saveNetwork(uint32_t nwId){
+void MenuNavigator::evaluatePerDigit(const uint32_t &nwId){
+    manager->compute_accuracy(nwId);
+}
+
+void MenuNavigator::saveNetwork(const uint32_t &nwId){
 
     //very suspicious
 
@@ -139,7 +140,7 @@ void MenuNavigator::saveNetwork(uint32_t nwId){
     manager->getNetworkFromId(nwId)->save(fileName.c_str());
 }
 
-void MenuNavigator::deleteNetwork(MenuNode *node, uint32_t nwId){
+void MenuNavigator::deleteNetwork(MenuNode *node,const uint32_t &nwId){
     MenuList yesNoChoice  = {
         new MenuNode("Yes",[this, nwId](){
             if(manager->deleteNn(nwId)){
@@ -174,9 +175,10 @@ void MenuNavigator::fetchNetworkList(MenuNode *node){                           
             MenuNode *nwNode = new MenuNode(std::to_string(nwId),nullptr);
             MenuList nwOptions = {                                                  //Static options to capture nwId
                 new MenuNode("Info",[this,nwId](){showInfo(nwId);}),  
-                new MenuNode("Train",[this,nwId](){unimplemented();}),
-                new MenuNode("Evaluate",[this,nwId](){evaluateNetwork(nwId);}),
-                new MenuNode("Save",[this,nwId](){unimplemented();}),
+                new MenuNode("Train",[this,nwId](){trainNetwork(nwId);}),
+                new MenuNode("Global accuracy",[this,nwId](){evaluateNetwork(nwId);}),
+                new MenuNode("Accuracy per digits",[this,nwId](){evaluatePerDigit(nwId);}),
+                new MenuNode("Save",[this,nwId](){saveNetwork(nwId);}),
                 new MenuNode("Delete",[this,nwId,nwNode](){this->deleteNetwork(nwNode,nwId);}),   //add confirmation to delete
             };
             
@@ -191,7 +193,6 @@ void MenuNavigator::fetchNetworkList(MenuNode *node){                           
 }
 
 void MenuNavigator::fetchSavedNetworkFiles(MenuNode *node){
-    node->clearChildren();
     const char* modelFolder = "./saved_networks";
     DIR* dir = opendir(modelFolder);
     if(!dir){
@@ -211,7 +212,7 @@ void MenuNavigator::fetchSavedNetworkFiles(MenuNode *node){
 
 void MenuNavigator::fetchConfOptions(MenuNode *node){
     TrainingConfig c = manager->getTrainingConf();
-
+    //std::cout<<"fetch"<<std::endl;
     auto formatTitle = [](const std::string& title, const std::string& value, size_t width = 30) {
         std::string res = title;
         res+= " :";
@@ -223,12 +224,73 @@ void MenuNavigator::fetchConfOptions(MenuNode *node){
     };
 
     MenuList confList = {
-        new MenuNode(formatTitle("Learning rate",std::to_string(c.learningRate)),nullptr),
-        new MenuNode(formatTitle("Number of epoch",std::to_string(c.epochs)),nullptr),
-        new MenuNode(formatTitle("Batch size",std::to_string(c.batchSize)),nullptr),
-        new MenuNode(formatTitle("Shuffle",(c.shuffle ? "Enabled" : "Disabled")),nullptr),
-        new MenuNode(formatTitle("Seed",std::to_string(c.seed)),nullptr),
+        new MenuNode(formatTitle("Learning rate",std::to_string(c.learningRate)),[this](){
+            double newLR = -2.22;
+            std::cout<<"Please enter learning rate: ";
+            if(secureDoubleInputCheck(newLR,0,10)){
+                TrainingConfig c = manager->getTrainingConf();
+                c.learningRate = newLR;
+                manager->setTrainingConf(c);
+                std::cout<<"Learning rate successfully set to "<<manager->getTrainingConf().learningRate<<std::endl;
+            } else {
+                std::cout<<"Error, could not change learning rate"<<std::endl;
+            }
+        }),
+
+        new MenuNode(formatTitle("Number of epoch",std::to_string(c.epochs)),[this](){
+            int newEpochNum = -1;
+            std::cout<<"Please enter number of epoch : ";
+            if(secureIntInputCheck(newEpochNum,10000)){
+                TrainingConfig c = manager->getTrainingConf();
+                c.epochs = newEpochNum;
+                manager->setTrainingConf(c);
+                std::cout<<"Num of epoch sucessfully set to : "<<manager->getTrainingConf().epochs<<std::endl; 
+            } else {
+                std::cout<<"Error, coud not change number of epoch"<<std::endl;
+            }
+            
+        }
+        ),
+        new MenuNode(formatTitle("Batch size",std::to_string(c.batchSize)),[this](){
+            int newBsize = -1;
+            std::cout<<"Please enter batch size : ";
+            if(secureIntInputCheck(newBsize,10000)){
+                TrainingConfig c = manager->getTrainingConf();
+                c.batchSize = newBsize;
+                manager->setTrainingConf(c);
+                std::cout<<"Batch size sucessfully set to : "<<manager->getTrainingConf().epochs<<std::endl; 
+            } else {
+                std::cout<<"Error, coud not change batch size"<<std::endl;
+            }
+
+        }),
+        new MenuNode(formatTitle("Shuffle",(c.shuffle ? "Enabled" : "Disabled")),[this](){
+            //yes no choice
+            int enable = -1;
+            std::cout<<"Please enter 1 for yes, 2 for no : ";
+            if(secureIntInputCheck(enable,2)){
+                TrainingConfig c = manager->getTrainingConf();
+                c.shuffle = (enable == 1 ? true : false);
+                manager->setTrainingConf(c);
+                std::cout<<"Shuffle is now "<<(manager->getTrainingConf().shuffle ? "enabled" : "disabled")<<std::endl;
+            } else {
+                std::cout<<"Error, incorrect shuffle change"<<std::endl;
+            }
+        }),
+        new MenuNode(formatTitle("Seed",std::to_string(c.seed)),[this](){
+            int seed = -1;
+            std::cout<<"Please enter seed : ";
+            if(secureIntInputCheck(seed,INT32_MAX)){
+                TrainingConfig c = manager->getTrainingConf();
+                c.seed = seed;
+                manager->setTrainingConf(c);
+                std::cout<<"Seed succesfully set to : "<<manager->getTrainingConf().seed<<std::endl;
+            } else {
+                std::cout<<"Error : incorrect seed change"<<std::endl;
+            }
+        }),
     };
+
     node->addChildren(confList,[this](){this->back();});
 }
 
@@ -236,21 +298,27 @@ void MenuNavigator::fetchConfOptions(MenuNode *node){
 // =========================
 // RUNNING FLOW
 // =========================
-void MenuNavigator::run(){
+void MenuNavigator::run(){ 
     int userInput = -1;
     while(!menuStack.empty()){
         displayMenu();
         if(secureIntInputCheck(userInput,menuStack.top()->options.size())){
            MenuNode *selected = menuStack.top()->options[userInput - 1];
+           //std::cout<<"Top title : "<<selected->title<<std::endl;
+           //std::cout<<"ACTION :\n"<<std::endl;
+           if(selected->action != nullptr){                                   //if we have an action, just do it :) omg nike propaganda ?
+                selected->action();                                           //
+                if(menuStack.top()->fetchChildren){                            //we suppose that any action can affect the current menu
+                    std::cout<<menuStack.top()->title;
+                    menuStack.top()->fetchChildren(menuStack.top());
+                }
+            }
            if(selected->fetchNeeded){                              //makes a fetch if the MenuNode requires it
             selected->fetchChildren(selected);
             }
-           if(selected->action != nullptr){                                    //if we have an action, just do it :)
-                selected->action();
-           }
            if(selected->hasChildren()){                             //push is only valid when we have children (or more options) to push, else, we stay at the same menu level
-            menuStack.push(selected);                               //attention ca n'a rien à voir avec si les enfants doivent être générés !, on peut très bien imaginer un cas où on tente
-           }                                                        //de générer des enfants sans succès, auquel cas, il n'y a rien à afficher 
+                menuStack.push(selected);                               //attention ca n'a rien à voir avec si les enfants doivent être générés !, on peut très bien imaginer un cas où on tente
+           } 
         }
     }
 }
@@ -258,11 +326,11 @@ void MenuNavigator::run(){
 void MenuNavigator::displayMenu(){
     if(menuStack.top()){
         std::cout<<"\n===="<<menuStack.top()->title<<"====\n";
+        
         for(size_t i = 0; i<menuStack.top()->options.size();i++){
             std::cout<<i+1<<". "<<menuStack.top()->options[i]->title<<"\n";
         }
-    }
-    else {
+    } else {
         std::cerr<<"Error : Menu not found\n";
     }
 }

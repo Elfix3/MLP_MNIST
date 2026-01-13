@@ -13,28 +13,39 @@ NnManager::~NnManager(){
 }
 
 
-void NnManager::train(size_t index){
+void NnManager::train(const uint32_t &id){
    
-    if(!setOfNetworks[index]){
-        std::cerr<<"No network found at this index\n";
+    if(existingIds.find(id) == existingIds.end()){
+        std::cerr<<"Error, id not found in the network manager"<<std::endl;
         return;
     }
+
+    size_t index = existingIds[id];
+
     if(!dataReader){
         std::cerr<<"No data reader defined\n";
         return;
     }
+
     size_t train_size = static_cast<size_t>(dataReader->get_num_images_Train());
     std::vector<size_t> globalIndexes(train_size);                                                          //vector with numImages indexes
     std::iota(globalIndexes.begin(),globalIndexes.end(), 0);                                                //all index prepared from 0,1,2,... to    dataReader->get_num_images_Train()-1
     
+
+    
+
     for(size_t epoch = 0; epoch<conf.epochs; epoch++){
-        
         shuffleIndexes(globalIndexes, conf.seed+epoch);                                                    //all indexes are now shuffled
         
+    
+        double LossSum = 0;                                                                                //to compute average
+        size_t seenSamples = 0;                                                                            //to compute average
+
         for(size_t batch_start = 0; batch_start<train_size; batch_start+=conf.batchSize){
             
             size_t batch_end = std::min(batch_start + conf.batchSize, train_size);
-            
+            size_t currentBatchSize = batch_end - batch_start;
+
             std::vector<size_t> batchIndex(globalIndexes.begin()+batch_start,globalIndexes.begin()+batch_end);
 
             Matrix X = dataReader->X_bach(batchIndex);
@@ -43,11 +54,16 @@ void NnManager::train(size_t index){
             Matrix A = setOfNetworks[index]->forward(X.Normalize(255));
             setOfNetworks[index]->backward(A-Y);
             setOfNetworks[index]->update(conf.learningRate);
-            std::cout<<setOfNetworks[index]->lossBatch(A,Y)<<std::endl;
+
+            
+            double batchLoss = setOfNetworks[index]->lossBatch(A, Y); // moyenne
+            LossSum += batchLoss * currentBatchSize;
+            seenSamples += currentBatchSize;
         }
-        std::cout<<"EPOCH MADE"<<std::endl;
+        
+        std::cout<<"Epoch "<<epoch+1<<"/"<<conf.epochs<<" made"<<std::endl;
+        std::cout<<"Average loss : "<<static_cast<double>(LossSum/seenSamples)<<std::endl;
     }
-    
 }
 
 void NnManager::compute_accuracy_global(const uint32_t &id){
@@ -161,8 +177,7 @@ size_t NnManager::get_n_neural_networks() const{
     return n_neural_networks;
 }
 
-NeuralNetwork **NnManager::get_setofNetWorks() const
-{
+NeuralNetwork **NnManager::get_setofNetWorks() const{
     if(!setOfNetworks){
         std::cerr<<"No set of network initalized"<<std::endl;
         return nullptr;
@@ -182,6 +197,13 @@ NeuralNetwork *NnManager::getNetworkFromId(const uint32_t id) const{
 
 TrainingConfig NnManager::getTrainingConf() const {
     return conf;                                            //returns the GLOBAL training conf, which will be used on all trainings
+}
+
+void NnManager::setTrainingConf(const TrainingConfig &newConf){
+   
+    conf = newConf;
+    std::cout<<conf.epochs<<std::endl;
+
 }
 
 void NnManager::showNetWorks() const{                       //todelete
